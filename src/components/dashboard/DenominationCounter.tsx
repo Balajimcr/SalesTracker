@@ -95,6 +95,7 @@ const DenominationCounter = ({
                 id="cashWithdrawn"
                 type="number"
                 min="0"
+                step="500"
                 max={totalAmount}
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}

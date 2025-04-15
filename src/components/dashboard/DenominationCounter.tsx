@@ -58,7 +58,6 @@ const DenominationCounter = ({
         <div className="space-y-4">
           {denominationItems.map(({ value, key }) => (
             <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-              <FaRupeeSign className="text-sm text-blue-500" />
               <Label htmlFor={key} className="w-16 text-right">
                 {value} x
               </Label>

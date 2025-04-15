@@ -11,7 +11,7 @@ import {
   maskLargeDifference
 } from "@/utils/salesCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaChartLine, FaRupeeSign } from "react-icons/fa";
+import { FaRupeeSign } from "react-icons/fa";
 
 interface SalesSummaryProps {
   data: SalesRecord;
@@ -45,11 +45,8 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
   const summaryItems = [
     { label: "Total Sales", value: data.totalSalesPOS },
     { label: "Cash", value: totalCashSales },
-    { label: "Paytm", value: data.paytmSales },
-    { label: "Expenses", value: totalExpenses },
     { label: "Total Cash", value: totalCash },
-    { label: "Closing Cash", value: closingCash },
-    { label: "Total from Denominations", value: totalFromDenominations }
+    { label: "Closing Cash", value: closingCash }
   ];
 
   return (

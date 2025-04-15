@@ -4,6 +4,7 @@ import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FaUserFriends, FaBroom, FaReceipt } from "react-icons/fa";
 import { calculateTotalExpenses } from "@/utils/salesCalculations";
 import { Employee } from "./EmployeeManagement";
@@ -16,6 +17,8 @@ interface ExpensesFormProps {
     value: string | number
   ) => void;
 }
+
+const OTHER_EXPENSES_OPTIONS = ["Tea or Snacks", "Others", "Flower", "Corporation", "Paper"];
 
 const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -134,12 +137,21 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Label htmlFor="expenseName1" className="text-sm block mb-1">
                     Description 1
                   </Label>
-                  <Input
-                    id="expenseName1"
-                    type="text"
+                  <Select
                     value={data.otherExpenses.name1 || ''}
-                    onChange={(e) => handleOtherExpenseChange('name1', e.target.value)}
-                  />
+                    onValueChange={(value) => handleOtherExpenseChange('name1', value)}
+                  >
+                    <SelectTrigger id="expenseName1">
+                      <SelectValue placeholder="Select expense type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OTHER_EXPENSES_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="expenseAmount1" className="text-sm block mb-1">

@@ -1,9 +1,12 @@
+
+import { useEffect, useState } from "react";
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FaUserFriends, FaBroom, FaReceipt } from "react-icons/fa";
 import { calculateTotalExpenses } from "@/utils/salesCalculations";
+import { Employee } from "./EmployeeManagement";
 
 interface ExpensesFormProps {
   data: Pick<SalesRecord, 'employeeAdvances' | 'cleaningExpenses' | 'otherExpenses'>;
@@ -15,6 +18,16 @@ interface ExpensesFormProps {
 }
 
 const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  
+  useEffect(() => {
+    // Load employees from localStorage
+    const storedEmployees = localStorage.getItem('employees');
+    if (storedEmployees) {
+      setEmployees(JSON.parse(storedEmployees));
+    }
+  }, []);
+
   const handleEmployeeChange = (employee: keyof SalesRecord['employeeAdvances'], value: string) => {
     const numValue = value === '' ? 0 : parseFloat(value);
     onChange('employeeAdvances', employee, isNaN(numValue) ? 0 : numValue);
@@ -60,25 +73,31 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
               <span>Employee Advances</span>
             </h3>
             <div className="space-y-3">
-              {Object.keys(data.employeeAdvances).map((employee, index) => (
-                <div key={employee} className="grid grid-cols-[1fr_2fr] items-center gap-3">
-                  <Label htmlFor={employee} className="text-sm">
-                    Employee {index + 1}
-                  </Label>
-                  <Input
-                    id={employee}
-                    type="number"
-                    min="0"
-                    value={data.employeeAdvances[employee as keyof SalesRecord['employeeAdvances']] || ''}
-                    onChange={(e) => 
-                      handleEmployeeChange(
-                        employee as keyof SalesRecord['employeeAdvances'], 
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              ))}
+              {Object.keys(data.employeeAdvances).map((employeeKey, index) => {
+                const employeeMatch = employees.length > index ? employees[index] : null;
+                const employeeLabel = employeeMatch ? employeeMatch.name : `Employee ${index + 1}`;
+                
+                return (
+                  <div key={employeeKey} className="grid grid-cols-[1fr_2fr] items-center gap-3">
+                    <Label htmlFor={employeeKey} className="text-sm">
+                      {employeeLabel}
+                    </Label>
+                    <Input
+                      id={employeeKey}
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={data.employeeAdvances[employeeKey as keyof SalesRecord['employeeAdvances']] || ''}
+                      onChange={(e) => 
+                        handleEmployeeChange(
+                          employeeKey as keyof SalesRecord['employeeAdvances'], 
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -96,6 +115,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                 id="cleaningExpenses"
                 type="number"
                 min="0"
+                step="100"
                 value={data.cleaningExpenses || ''}
                 onChange={(e) => handleCleaningChange(e.target.value)}
               />
@@ -129,6 +149,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     id="expenseAmount1"
                     type="number"
                     min="0"
+                    step="100"
                     value={data.otherExpenses.amount1 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount1', e.target.value)}
                   />
@@ -155,6 +176,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     id="expenseAmount2"
                     type="number"
                     min="0"
+                    step="100"
                     value={data.otherExpenses.amount2 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount2', e.target.value)}
                   />

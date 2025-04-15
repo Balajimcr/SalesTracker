@@ -3,7 +3,13 @@ import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { FaCalendarAlt, FaRupeeSign, FaCreditCard } from "react-icons/fa";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 
 interface SalesBasicInfoProps {
   data: Pick<SalesRecord, 'date' | 'openingCash' | 'totalSalesPOS' | 'paytmSales'>;
@@ -18,6 +24,13 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
       // Convert to number for numeric fields
       const numValue = value === '' ? 0 : parseFloat(value);
       onChange(field, isNaN(numValue) ? 0 : numValue);
+    }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const dateString = date.toISOString().split('T')[0];
+      handleChange('date', dateString);
     }
   };
 
@@ -36,12 +49,34 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               <FaCalendarAlt className="text-sm text-blue-500" />
               <span>Date</span>
             </Label>
-            <Input
-              id="date"
-              type="date"
-              value={data.date}
-              onChange={(e) => handleChange('date', e.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !data.date && "text-muted-foreground"
+                  )}
+                  id="date"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {data.date ? (
+                    format(new Date(data.date), "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={data.date ? new Date(data.date) : undefined}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="grid grid-cols-[1fr_2fr] items-center gap-3">
@@ -53,6 +88,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="openingCash"
               type="number"
               min="0"
+              step="100"
               value={data.openingCash || ''}
               onChange={(e) => handleChange('openingCash', e.target.value)}
             />
@@ -67,6 +103,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="totalSalesPOS"
               type="number"
               min="0"
+              step="100"
               value={data.totalSalesPOS || ''}
               onChange={(e) => handleChange('totalSalesPOS', e.target.value)}
             />
@@ -81,6 +118,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="paytmSales"
               type="number"
               min="0"
+              step="100"
               value={data.paytmSales || ''}
               onChange={(e) => handleChange('paytmSales', e.target.value)}
             />

@@ -1,8 +1,13 @@
 
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesEntryForm from "./SalesEntryForm";
-import { FaShoppingBag } from "react-icons/fa";
+import EmployeeManagement from "./EmployeeManagement";
+import { FaShoppingBag, FaUsers } from "react-icons/fa";
 
 const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState("sales");
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
@@ -22,12 +27,30 @@ const Dashboard = () => {
         </div>
         <p className="text-gray-600 max-w-2xl">
           Track and manage your daily shop sales, expenses, and cash flow with this easy-to-use dashboard.
-          Enter the details below to record your daily sales information.
         </p>
       </header>
 
       <main>
-        <SalesEntryForm />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="sales" className="flex items-center gap-2">
+              <FaShoppingBag />
+              <span>Sales Entry</span>
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="flex items-center gap-2">
+              <FaUsers />
+              <span>Employees</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="sales">
+            <SalesEntryForm />
+          </TabsContent>
+          
+          <TabsContent value="employees">
+            <EmployeeManagement />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

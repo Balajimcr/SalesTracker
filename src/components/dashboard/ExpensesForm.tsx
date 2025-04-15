@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,7 +112,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
             </h3>
             <div className="grid grid-cols-[1fr_2fr] items-center gap-3">
               <Label htmlFor="cleaningExpenses" className="text-sm">
-                Amount
+                Cleaning Expenses
               </Label>
               <Input
                 id="cleaningExpenses"

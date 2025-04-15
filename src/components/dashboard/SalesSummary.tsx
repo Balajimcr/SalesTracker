@@ -57,9 +57,9 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-1"> {/* Reduced space-y from 3 to 1 */}
           {summaryItems.map((item) => (
-            <div key={item.label} className="flex justify-between items-center py-2 border-b">
+            <div key={item.label} className="flex justify-between items-center py-1 border-none"> {/* Removed border-b, reduced py from 2 to 1 */}
               <span className="font-medium">{item.label}:</span>
               <span className="text-lg font-semibold flex items-center">
                 <FaRupeeSign className="mr-1 text-sm" />
@@ -68,7 +68,7 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
             </div>
           ))}
           
-          <div className="flex justify-between items-center py-3 mt-2">
+          <div className="flex justify-between items-center py-2 mt-1"> {/* Reduced py from 3 to 2, reduced mt from 2 to 1 */}
             <span className="font-bold text-lg">Difference:</span>
             <span className={`text-2xl font-bold flex items-center ${statusColors[differenceStatus]}`}>
               <FaRupeeSign className="mr-1" />

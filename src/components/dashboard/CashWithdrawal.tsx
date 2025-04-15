@@ -23,7 +23,6 @@ const CashWithdrawal = ({ cashWithdrawn, totalFromDenominations, onChange }: Cas
     <Card className={isExceeded ? "border-red-500" : ""}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FaMoneyBillWave className="text-blue-500" />
         </CardTitle>
       </CardHeader>
       <CardContent>

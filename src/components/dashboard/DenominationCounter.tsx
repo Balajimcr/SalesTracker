@@ -8,22 +8,16 @@ import { FaRupeeSign } from "react-icons/fa";
 
 interface DenominationCounterProps {
   denominations: SalesRecord['denominations'];
-  cashWithdrawn: number;
-  onChange: (denominations: SalesRecord['denominations'], cashWithdrawn: number) => void;
+  onChange: (denominations: SalesRecord['denominations']) => void;
 }
 
-const DenominationCounter = ({ denominations, cashWithdrawn, onChange }: DenominationCounterProps) => {
-  const handleDenominationChange = (key: keyof SalesRecord['denominations'], value: string) => {
+const DenominationCounter = ({ denominations, onChange }: DenominationCounterProps) => {
+  const handleChange = (key: keyof SalesRecord['denominations'], value: string) => {
     const numValue = value === '' ? 0 : parseInt(value, 10);
     onChange({
       ...denominations,
       [key]: isNaN(numValue) ? 0 : numValue
-    }, cashWithdrawn);
-  };
-
-  const handleCashWithdrawnChange = (value: string) => {
-    const numValue = value === '' ? 0 : parseInt(value, 10);
-    onChange(denominations, isNaN(numValue) ? 0 : numValue);
+    });
   };
 
   const totalAmount = calculateTotalFromDenominations(denominations);
@@ -58,9 +52,8 @@ const DenominationCounter = ({ denominations, cashWithdrawn, onChange }: Denomin
                 id={key}
                 type="number"
                 min="0"
-                step="1"
                 value={denominations[key] || ''}
-                onChange={(e) => handleDenominationChange(key, e.target.value)}
+                onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full text-left"
               />
               <div className="text-right text-sm font-medium w-24">
@@ -70,30 +63,11 @@ const DenominationCounter = ({ denominations, cashWithdrawn, onChange }: Denomin
             </div>
           ))}
 
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 mt-4">
-            <Label htmlFor="cashWithdrawn" className="w-16 text-right">
-              Withdrawal x
-            </Label>
-            <Input
-              id="cashWithdrawn"
-              type="number"
-              min="0"
-              step="100"
-              value={cashWithdrawn || ''}
-              onChange={(e) => handleCashWithdrawnChange(e.target.value)}
-              className="w-full text-left"
-            />
-            <div className="text-right text-sm font-medium w-24">
-              <FaRupeeSign className="inline text-xs mr-1 text-muted-foreground" />
-              <span>{cashWithdrawn || 0}</span>
-            </div>
-          </div>
-
           <div className="pt-4 border-t mt-6 flex justify-between items-center">
             <span className="font-medium">Total Amount:</span>
             <span className="text-xl font-bold text-blue-600 flex items-center">
               <FaRupeeSign className="mr-1" />
-              {(totalAmount - (cashWithdrawn || 0)).toLocaleString()}
+              {totalAmount.toLocaleString()}
             </span>
           </div>
         </div>
@@ -103,4 +77,3 @@ const DenominationCounter = ({ denominations, cashWithdrawn, onChange }: Denomin
 };
 
 export default DenominationCounter;
-

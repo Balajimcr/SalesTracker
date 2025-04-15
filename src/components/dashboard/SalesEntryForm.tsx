@@ -13,6 +13,7 @@ import {
 import SalesBasicInfo from "./SalesBasicInfo";
 import ExpensesForm from "./ExpensesForm";
 import DenominationCounter from "./DenominationCounter";
+import CashWithdrawal from "./CashWithdrawal";
 import SalesSummary from "./SalesSummary";
 import { FaSave, FaFileDownload, FaTrash } from "react-icons/fa";
 
@@ -53,12 +54,19 @@ const SalesEntryForm = () => {
     }
   };
   
-  // Handle denominations and cash withdrawn changes
-  const handleDenominationsChange = (denominations: SalesRecord['denominations'], cashWithdrawn: number) => {
+  // Handle denominations changes
+  const handleDenominationsChange = (denominations: SalesRecord['denominations']) => {
     setFormData(prev => ({
       ...prev,
-      denominations,
-      cashWithdrawn
+      denominations
+    }));
+  };
+  
+  // Handle cash withdrawn changes
+  const handleCashWithdrawnChange = (value: number) => {
+    setFormData(prev => ({
+      ...prev,
+      cashWithdrawn: value
     }));
   };
   
@@ -129,8 +137,13 @@ const SalesEntryForm = () => {
         <div className="space-y-6">
           <DenominationCounter 
             denominations={formData.denominations}
-            cashWithdrawn={formData.cashWithdrawn}
             onChange={handleDenominationsChange}
+          />
+          
+          <CashWithdrawal 
+            cashWithdrawn={formData.cashWithdrawn}
+            totalFromDenominations={totalFromDenominations}
+            onChange={handleCashWithdrawnChange}
           />
           
           <SalesSummary data={formData} />
@@ -158,4 +171,3 @@ const SalesEntryForm = () => {
 };
 
 export default SalesEntryForm;
-

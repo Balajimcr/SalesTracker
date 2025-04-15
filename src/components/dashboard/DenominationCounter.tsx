@@ -4,14 +4,21 @@ import { calculateTotalFromDenominations } from "@/utils/salesCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FaRupeeSign } from "react-icons/fa";
+import { FaRupeeSign, FaMoneyBillWave } from "react-icons/fa";
 
 interface DenominationCounterProps {
   denominations: SalesRecord['denominations'];
+  cashWithdrawn: number;
   onChange: (denominations: SalesRecord['denominations']) => void;
+  onCashWithdrawnChange: (value: number) => void;
 }
 
-const DenominationCounter = ({ denominations, onChange }: DenominationCounterProps) => {
+const DenominationCounter = ({ 
+  denominations, 
+  cashWithdrawn, 
+  onChange, 
+  onCashWithdrawnChange 
+}: DenominationCounterProps) => {
   const handleChange = (key: keyof SalesRecord['denominations'], value: string) => {
     const numValue = value === '' ? 0 : parseInt(value, 10);
     onChange({
@@ -20,7 +27,13 @@ const DenominationCounter = ({ denominations, onChange }: DenominationCounterPro
     });
   };
 
+  const handleCashWithdrawnChange = (value: string) => {
+    const numValue = value === '' ? 0 : parseFloat(value);
+    onCashWithdrawnChange(isNaN(numValue) ? 0 : numValue);
+  };
+
   const totalAmount = calculateTotalFromDenominations(denominations);
+  const isExceeded = cashWithdrawn > totalAmount;
 
   // Array of denomination values and their keys for easy mapping
   const denominationItems = [
@@ -69,6 +82,35 @@ const DenominationCounter = ({ denominations, onChange }: DenominationCounterPro
               <FaRupeeSign className="mr-1" />
               {totalAmount.toLocaleString()}
             </span>
+          </div>
+          
+          {/* Cash Withdrawal Section */}
+          <div className="pt-4 border-t mt-6">
+            <div className="grid grid-cols-[auto_1fr] items-center gap-3 mb-2">
+              <Label htmlFor="cashWithdrawn" className="flex items-center gap-1">
+                <FaMoneyBillWave className="text-sm text-blue-500" />
+                <span>Cash Withdrawal</span>
+              </Label>
+              <Input
+                id="cashWithdrawn"
+                type="number"
+                min="0"
+                max={totalAmount}
+                value={cashWithdrawn || ''}
+                onChange={(e) => handleCashWithdrawnChange(e.target.value)}
+                className={isExceeded ? "border-red-500" : ""}
+              />
+            </div>
+            
+            {isExceeded && (
+              <div className="text-red-500 text-sm mt-2">
+                Warning: Cash withdrawn exceeds the total cash available from denominations!
+              </div>
+            )}
+            
+            <div className="text-sm text-muted-foreground mt-2">
+              Maximum withdrawal amount: ₹{totalAmount.toLocaleString()}
+            </div>
           </div>
         </div>
       </CardContent>

@@ -13,7 +13,6 @@ import {
 import SalesBasicInfo from "./SalesBasicInfo";
 import ExpensesForm from "./ExpensesForm";
 import DenominationCounter from "./DenominationCounter";
-import CashWithdrawal from "./CashWithdrawal";
 import SalesSummary from "./SalesSummary";
 import { FaSave, FaFileDownload, FaTrash } from "react-icons/fa";
 
@@ -137,13 +136,9 @@ const SalesEntryForm = () => {
         <div className="space-y-6">
           <DenominationCounter 
             denominations={formData.denominations}
-            onChange={handleDenominationsChange}
-          />
-          
-          <CashWithdrawal 
             cashWithdrawn={formData.cashWithdrawn}
-            totalFromDenominations={totalFromDenominations}
-            onChange={handleCashWithdrawnChange}
+            onChange={handleDenominationsChange}
+            onCashWithdrawnChange={handleCashWithdrawnChange}
           />
           
           <SalesSummary data={formData} />

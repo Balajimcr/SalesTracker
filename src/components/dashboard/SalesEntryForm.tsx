@@ -73,20 +73,7 @@ const SalesEntryForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate cash withdrawn
-    if (!validateCashWithdrawn(totalFromDenominations, formData.cashWithdrawn)) {
-      toast.error("Cash withdrawn cannot exceed total from denominations!");
-      return;
-    }
-    
-    // Validate cash difference
-    const { cashDifference } = calculatedValues;
-    if (!validateCashDifference(cashDifference || 0)) {
-      toast.error("Large cash difference detected! Please contact the owner.");
-      return;
-    }
-    
-    // Save the record
+    // Save the record - accept any value entered
     try {
       saveSalesRecord(formData);
       toast.success("Sales record saved successfully!");

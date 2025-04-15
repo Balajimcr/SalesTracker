@@ -43,11 +43,13 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
   const showLargeWarning = Math.abs(cashDifference) > 1000;
 
   const summaryItems = [
-    { label: "Total Expenses", value: totalExpenses },
-    { label: "Total from Denominations", value: totalFromDenominations },
+    { label: "Total Sales", value: data.totalSalesPOS },
+    { label: "Cash", value: totalCashSales },
+    { label: "Paytm", value: data.paytmSales },
+    { label: "Expenses", value: totalExpenses },
+    { label: "Total Cash", value: totalCash },
     { label: "Closing Cash", value: closingCash },
-    { label: "Total Cash Sales", value: totalCashSales },
-    { label: "Total Cash", value: totalCash }
+    { label: "Total from Denominations", value: totalFromDenominations }
   ];
 
   return (
@@ -71,8 +73,8 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
           ))}
           
           <div className="flex justify-between items-center py-3 mt-2">
-            <span className="font-bold text-lg">Cash Difference:</span>
-            <span className={`text-xl font-bold flex items-center ${statusColors[differenceStatus]}`}>
+            <span className="font-bold text-lg">Difference:</span>
+            <span className={`text-2xl font-bold flex items-center ${statusColors[differenceStatus]}`}>
               <FaRupeeSign className="mr-1" />
               {displayCashDifference.toLocaleString()}
             </span>

@@ -45,9 +45,8 @@ const DenominationCounter = ({ denominations, onChange }: DenominationCounterPro
         <div className="space-y-4">
           {denominationItems.map(({ value, key }) => (
             <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-              <Label htmlFor={key} className="w-28 flex items-center gap-1">
-                <FaRupeeSign className="text-sm text-blue-500" />
-                <span>{value}</span>
+              <Label htmlFor={key} className="w-16 text-right">
+                {value} x
               </Label>
               <Input
                 id={key}
@@ -55,9 +54,9 @@ const DenominationCounter = ({ denominations, onChange }: DenominationCounterPro
                 min="0"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
-                className="w-full"
+                className="w-full text-left"
               />
-              <div className="text-right text-sm font-medium">
+              <div className="text-right text-sm font-medium w-24">
                 <FaRupeeSign className="inline text-xs mr-1 text-muted-foreground" />
                 <span>{(denominations[key] || 0) * value}</span>
               </div>

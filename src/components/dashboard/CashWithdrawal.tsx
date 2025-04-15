@@ -32,7 +32,7 @@ const CashWithdrawal = ({ cashWithdrawn, totalFromDenominations, onChange }: Cas
           <div className="grid grid-cols-[1fr_2fr] items-center gap-3">
             <Label htmlFor="cashWithdrawn" className="flex items-center gap-1">
               <FaMoneyBillWave className="text-sm text-blue-500" />
-              <span>Amount Withdrawn</span>
+              <span>Cash Withdrawal</span>
             </Label>
             <Input
               id="cashWithdrawn"

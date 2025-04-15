@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
-import { FaShoppingBag, FaUsers } from "react-icons/fa";
+import SalesDashboard from "./SalesDashboard";
+import { FaShoppingBag, FaUsers, FaChartLine } from "react-icons/fa";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
@@ -37,6 +38,10 @@ const Dashboard = () => {
               <FaShoppingBag />
               <span>Sales Entry</span>
             </TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <FaChartLine />
+              <span>Sales Dashboard</span>
+            </TabsTrigger>
             <TabsTrigger value="employees" className="flex items-center gap-2">
               <FaUsers />
               <span>Employees</span>
@@ -45,6 +50,10 @@ const Dashboard = () => {
           
           <TabsContent value="sales">
             <SalesEntryForm />
+          </TabsContent>
+          
+          <TabsContent value="dashboard">
+            <SalesDashboard />
           </TabsContent>
           
           <TabsContent value="employees">

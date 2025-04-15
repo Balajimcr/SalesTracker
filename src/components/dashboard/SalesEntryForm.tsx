@@ -140,13 +140,13 @@ const SalesEntryForm = () => {
             onChange={handleDenominationsChange}
           />
           
+          <SalesSummary data={formData} />
+          
           <CashWithdrawal 
             cashWithdrawn={formData.cashWithdrawn}
             totalFromDenominations={totalFromDenominations}
             onChange={handleCashWithdrawnChange}
           />
-          
-          <SalesSummary data={formData} />
         </div>
       </div>
       
@@ -171,3 +171,4 @@ const SalesEntryForm = () => {
 };
 
 export default SalesEntryForm;
+

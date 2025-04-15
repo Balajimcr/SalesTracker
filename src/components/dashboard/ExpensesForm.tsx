@@ -102,10 +102,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
 
           {/* Cleaning Expenses */}
           <div>
-            <h3 className="text-sm font-medium mb-3 flex items-center gap-1">
-              <span>Cleaning Expenses</span>
-              <FaBroom className="text-blue-500 ml-2" />
-            </h3>
             <div className="grid grid-cols-[1fr_2fr] items-center gap-3">
               <Label htmlFor="cleaningExpenses" className="text-sm">
                 Cleaning Expenses
@@ -123,10 +119,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
 
           {/* Other Expenses */}
           <div>
-            <h3 className="text-sm font-medium mb-3 flex items-center gap-1">
-              <FaReceipt className="text-blue-500" />
-              <span>Other Expenses</span>
-            </h3>
             <div className="space-y-3">
               <div className="grid grid-cols-[1fr_1fr] gap-3">
                 <div>

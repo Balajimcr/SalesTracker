@@ -71,10 +71,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
         <div className="space-y-6">
           {/* Employee Advances */}
           <div>
-            <h3 className="text-sm font-medium mb-3 flex items-center gap-1">
-              <FaUserFriends className="text-blue-500" />
-              <span>Employee Advances</span>
-            </h3>
             <div className="space-y-3">
               {Object.keys(data.employeeAdvances).map((employeeKey, index) => {
                 const employeeMatch = employees.length > index ? employees[index] : null;

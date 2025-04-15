@@ -38,19 +38,6 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
     warning: "text-blue-500",
     error: "text-red-500"
   };
-  
-  // Warning for large difference
-  const showLargeWarning = Math.abs(cashDifference) > 1000;
-
-  const summaryItems = [
-    { label: "Total Sales", value: data.totalSalesPOS },
-    { label: "Cash", value: totalCashSales },
-    { label: "Paytm", value: data.paytmSales },
-    { label: "Expenses", value: totalExpenses },
-    { label: "Total Cash", value: totalCash },
-    { label: "Closing Cash", value: closingCash },
-    { label: "Total from Denominations", value: totalFromDenominations }
-  ];
 
   return (
     <Card className="bg-slate-50">
@@ -62,16 +49,6 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {summaryItems.map((item) => (
-            <div key={item.label} className="flex justify-between items-center py-2 border-b">
-              <span className="font-medium">{item.label}:</span>
-              <span className="text-lg font-semibold flex items-center">
-                <FaRupeeSign className="mr-1 text-sm" />
-                {item.value.toLocaleString()}
-              </span>
-            </div>
-          ))}
-          
           <div className="flex justify-between items-center py-3 mt-2">
             <span className="font-bold text-lg">Difference:</span>
             <span className={`text-2xl font-bold flex items-center ${statusColors[differenceStatus]}`}>
@@ -79,13 +56,6 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
               {displayCashDifference.toLocaleString()}
             </span>
           </div>
-          
-          {showLargeWarning && (
-            <div className="bg-red-100 text-red-800 p-3 rounded-md mt-4">
-              <p className="font-bold">Warning: Large Cash Difference Detected!</p>
-              <p className="text-sm mt-1">Please contact the owner immediately.</p>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
@@ -93,3 +63,4 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
 };
 
 export default SalesSummary;
+

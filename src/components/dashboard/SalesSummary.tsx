@@ -45,11 +45,8 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
   const summaryItems = [
     { label: "Total Sales", value: data.totalSalesPOS },
     { label: "Cash", value: totalCashSales },
-    { label: "Paytm", value: data.paytmSales },
-    { label: "Expenses", value: totalExpenses },
     { label: "Total Cash", value: totalCash },
-    { label: "Closing Cash", value: closingCash },
-    { label: "Total from Denominations", value: totalFromDenominations }
+    { label: "Closing Cash", value: closingCash }
   ];
 
   return (
@@ -93,3 +90,4 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
 };
 
 export default SalesSummary;
+

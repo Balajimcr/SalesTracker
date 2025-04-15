@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,7 +83,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     <Input
                       id={employeeKey}
                       type="number"
-                      min="0"
                       step="100"
                       value={data.employeeAdvances[employeeKey as keyof SalesRecord['employeeAdvances']] || ''}
                       onChange={(e) => 
@@ -109,7 +107,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
               <Input
                 id="cleaningExpenses"
                 type="number"
-                min="0"
                 step="100"
                 value={data.cleaningExpenses || ''}
                 onChange={(e) => handleCleaningChange(e.target.value)}
@@ -148,7 +145,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Input
                     id="expenseAmount1"
                     type="number"
-                    min="0"
                     step="100"
                     value={data.otherExpenses.amount1 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount1', e.target.value)}
@@ -184,7 +180,6 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Input
                     id="expenseAmount2"
                     type="number"
-                    min="0"
                     step="100"
                     value={data.otherExpenses.amount2 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount2', e.target.value)}

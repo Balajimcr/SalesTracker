@@ -1,4 +1,3 @@
-
 import { SalesRecord } from "@/types/salesTypes";
 
 // Calculate total employee advances
@@ -88,12 +87,13 @@ export const calculateDerivedValues = (record: SalesRecord): SalesRecord => {
   };
 };
 
-// Validate if cash withdrawn exceeds total from denominations
+// Remove restrictive validation functions
 export const validateCashWithdrawn = (totalFromDenominations: number, cashWithdrawn: number) => {
-  return cashWithdrawn <= totalFromDenominations;
+  // Always return true to allow any value
+  return true;
 };
 
-// Validate if cash difference is within acceptable range
 export const validateCashDifference = (cashDifference: number) => {
-  return Math.abs(cashDifference) <= 1000;
+  // Always return true to allow any value
+  return true;
 };

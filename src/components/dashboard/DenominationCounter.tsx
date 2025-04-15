@@ -1,4 +1,3 @@
-
 import { SalesRecord } from "@/types/salesTypes";
 import { calculateTotalFromDenominations } from "@/utils/salesCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,8 +63,7 @@ const DenominationCounter = ({
               <Input
                 id={key}
                 type="number"
-                min="0"
-                step="1"
+                step="100"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full text-left"
@@ -95,22 +93,10 @@ const DenominationCounter = ({
               <Input
                 id="cashWithdrawn"
                 type="number"
-                min="0"
-                step="500"
+                step="100"
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}
-                className={isExceeded ? "border-red-500" : ""}
               />
-            </div>
-            
-            {isExceeded && (
-              <div className="text-red-500 text-sm mt-2">
-                Warning: Cash withdrawn exceeds the total cash available from denominations!
-              </div>
-            )}
-            
-            <div className="text-sm text-muted-foreground mt-2">
-              Maximum withdrawal amount: ₹{totalAmount.toLocaleString()}
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,6 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
     if (field === 'date') { 
       onChange(field, value);
     } else {
-      // Convert to number for numeric fields
       const numValue = value === '' ? 0 : parseFloat(value);
       onChange(field, isNaN(numValue) ? 0 : numValue);
     }
@@ -87,7 +85,6 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="openingCash"
               type="number"
-              min="0"
               step="100"
               value={data.openingCash || ''}
               onChange={(e) => handleChange('openingCash', e.target.value)}
@@ -102,7 +99,6 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="totalSalesPOS"
               type="number"
-              min="0"
               step="100"
               value={data.totalSalesPOS || ''}
               onChange={(e) => handleChange('totalSalesPOS', e.target.value)}
@@ -117,7 +113,6 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="paytmSales"
               type="number"
-              min="0"
               step="100"
               value={data.paytmSales || ''}
               onChange={(e) => handleChange('paytmSales', e.target.value)}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -173,12 +172,21 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Label htmlFor="expenseName2" className="text-sm block mb-1">
                     Description 2
                   </Label>
-                  <Input
-                    id="expenseName2"
-                    type="text"
+                  <Select
                     value={data.otherExpenses.name2 || ''}
-                    onChange={(e) => handleOtherExpenseChange('name2', e.target.value)}
-                  />
+                    onValueChange={(value) => handleOtherExpenseChange('name2', value)}
+                  >
+                    <SelectTrigger id="expenseName2">
+                      <SelectValue placeholder="Select expense type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OTHER_EXPENSES_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="expenseAmount2" className="text-sm block mb-1">

@@ -56,7 +56,6 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
     <Card className="bg-slate-50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FaChartLine className="text-blue-500" />
           <span>Daily Summary</span>
         </CardTitle>
       </CardHeader>

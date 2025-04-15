@@ -85,7 +85,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                       id={employeeKey}
                       type="number"
                       min="0"
-                      step="100"
+                      step="500"
                       value={data.employeeAdvances[employeeKey as keyof SalesRecord['employeeAdvances']] || ''}
                       onChange={(e) => 
                         handleEmployeeChange(
@@ -110,7 +110,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                 id="cleaningExpenses"
                 type="number"
                 min="0"
-                step="100"
+                step="500"
                 value={data.cleaningExpenses || ''}
                 onChange={(e) => handleCleaningChange(e.target.value)}
               />
@@ -149,7 +149,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     id="expenseAmount1"
                     type="number"
                     min="0"
-                    step="100"
+                    step="500"
                     value={data.otherExpenses.amount1 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount1', e.target.value)}
                   />
@@ -185,7 +185,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     id="expenseAmount2"
                     type="number"
                     min="0"
-                    step="100"
+                    step="500"
                     value={data.otherExpenses.amount2 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount2', e.target.value)}
                   />

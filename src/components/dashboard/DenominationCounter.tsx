@@ -65,6 +65,7 @@ const DenominationCounter = ({
                 id={key}
                 type="number"
                 min="0"
+                step="1"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full text-left"
@@ -96,7 +97,6 @@ const DenominationCounter = ({
                 type="number"
                 min="0"
                 step="500"
-                max={totalAmount}
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}
                 className={isExceeded ? "border-red-500" : ""}

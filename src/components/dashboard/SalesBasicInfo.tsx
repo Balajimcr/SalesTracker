@@ -18,7 +18,7 @@ interface SalesBasicInfoProps {
 
 const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
   const handleChange = (field: keyof SalesBasicInfoProps['data'], value: string) => {
-    if (field === 'date') {
+    if (field === 'date') { 
       onChange(field, value);
     } else {
       // Convert to number for numeric fields
@@ -88,7 +88,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="openingCash"
               type="number"
               min="0"
-              step="100"
+              step="500"
               value={data.openingCash || ''}
               onChange={(e) => handleChange('openingCash', e.target.value)}
             />
@@ -103,7 +103,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="totalSalesPOS"
               type="number"
               min="0"
-              step="100"
+              step="500"
               value={data.totalSalesPOS || ''}
               onChange={(e) => handleChange('totalSalesPOS', e.target.value)}
             />
@@ -118,7 +118,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
               id="paytmSales"
               type="number"
               min="0"
-              step="100"
+              step="500"
               value={data.paytmSales || ''}
               onChange={(e) => handleChange('paytmSales', e.target.value)}
             />

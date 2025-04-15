@@ -96,7 +96,7 @@ const DenominationCounter = ({
                 id="cashWithdrawn"
                 type="number"
                 min="0"
-                step="100"
+                step="1"
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}
                 className={isExceeded ? "border-red-500" : ""}

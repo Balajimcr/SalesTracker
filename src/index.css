@@ -98,4 +98,31 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Custom styles for our shop app */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  .card-highlighted {
+    @apply shadow-md border-blue-300;
+  }
+  
+  .cash-success {
+    @apply text-green-500 font-bold;
+  }
+  
+  .cash-warning {
+    @apply text-blue-500 font-bold;
+  }
+  
+  .cash-error {
+    @apply text-red-500 font-bold;
+  }
+  
+  /* Input enhancements */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+  }
 }

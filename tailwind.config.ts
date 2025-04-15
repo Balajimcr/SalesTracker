@@ -61,6 +61,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom shop sales colors
+				shop: {
+					primary: '#1e40af', // Deep blue
+					secondary: '#3b82f6', // Light blue
+					accent: '#0d9488', // Teal
+					success: '#10b981', // Green
+					warning: '#f97316', // Orange
+					error: '#ef4444', // Red
+					background: '#f8fafc', // Light gray
 				}
 			},
 			borderRadius: {

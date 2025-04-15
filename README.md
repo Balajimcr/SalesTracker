@@ -1,73 +1,66 @@
-# Welcome to your Lovable project
+# Shop Sales Insight Dashboard
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/06f3dff8-1863-49f8-a58a-cf3a3a9ef659
+The Shop Sales Insight Dashboard is a comprehensive web application designed to simplify daily sales tracking for retail businesses. This application allows store managers to easily record, calculate, and visualize essential financial data.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **Daily Sales Recording**: Track POS sales, digital payments, and cash transactions
+- **Cash Management**: Record opening balances, cash withdrawals, and denomination counts
+- **Expense Tracking**: Monitor employee advances, cleaning costs, and other daily expenses
+- **Automatic Calculations**: Get instant summaries of total sales, expenses, and cash differences
+- **Data Validation**: Prevent common errors with built-in validation rules
+- **Visual Indicators**: Color-coded alerts for cash discrepancies
+- **Data Export**: Download sales records as CSV files for accounting purposes
 
-**Use Lovable**
+## How to Use
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/06f3dff8-1863-49f8-a58a-cf3a3a9ef659) and start prompting.
+1. **Enter Basic Information**:
+   - Date of the sales record
+   - Opening cash balance
+   - Total POS sales
+   - Paytm/digital payment sales
 
-Changes made via Lovable will be committed automatically to this repo.
+2. **Record Expenses**:
+   - Employee advances
+   - Cleaning expenses
+   - Other miscellaneous expenses
 
-**Use your preferred IDE**
+3. **Count Cash Denominations**:
+   - Enter the count for each denomination (500, 200, 100, 50, 20, 10, 5)
+   - View the calculated total amount
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+4. **Record Cash Withdrawals**:
+   - Enter the amount of cash withdrawn
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+5. **Review Summary**:
+   - View calculated totals and balances
+   - Check for any cash discrepancies
 
-Follow these steps:
+6. **Save and Export**:
+   - Save the daily record
+   - Download data as CSV when needed
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Technical Details
 
 This project is built with:
+- React & TypeScript for the frontend
+- Tailwind CSS for styling
+- ShadCN UI for component library
+- Local storage for data persistence
+- CSV export functionality
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+- `/components/dashboard`: Main dashboard components
+- `/types`: TypeScript definitions for data structures
+- `/services`: Data management and storage services
+- `/utils`: Calculation and validation utilities
 
-Simply open [Lovable](https://lovable.dev/projects/06f3dff8-1863-49f8-a58a-cf3a3a9ef659) and click on Share -> Publish.
+## Future Enhancements
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Data visualization with charts and graphs
+- Historical data analysis
+- User authentication
+- Cloud data synchronization

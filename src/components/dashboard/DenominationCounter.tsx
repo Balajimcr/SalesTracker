@@ -34,7 +34,6 @@ const DenominationCounter = ({
   const totalAmount = calculateTotalFromDenominations(denominations);
   const isExceeded = cashWithdrawn > totalAmount;
 
-  // Array of denomination values and their keys for easy mapping
   const denominationItems = [
     { value: 500, key: 'd500' as keyof SalesRecord['denominations'] },
     { value: 200, key: 'd200' as keyof SalesRecord['denominations'] },
@@ -63,7 +62,7 @@ const DenominationCounter = ({
               <Input
                 id={key}
                 type="number"
-                step="100"
+                step="1"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full text-left"
@@ -83,7 +82,6 @@ const DenominationCounter = ({
             </span>
           </div>
           
-          {/* Cash Withdrawal Section */}
           <div className="pt-4 border-t mt-6">
             <div className="grid grid-cols-[auto_1fr] items-center gap-3 mb-2">
               <Label htmlFor="cashWithdrawn" className="flex items-center gap-1">
@@ -93,7 +91,7 @@ const DenominationCounter = ({
               <Input
                 id="cashWithdrawn"
                 type="number"
-                step="100"
+                step="1"
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}
               />

@@ -13,6 +13,14 @@ import DenominationCounter from "./DenominationCounter";
 import SalesSummary from "./SalesSummary";
 import { FaCalendarAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 const SalesDashboard = () => {
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
@@ -20,6 +28,7 @@ const SalesDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecord, setEditedRecord] = useState<SalesRecord>(emptySalesRecord);
   const [viewMode, setViewMode] = useState<"details" | "summary">("details");
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   useEffect(() => {
     loadSalesRecords();
@@ -35,6 +44,7 @@ const SalesDashboard = () => {
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setSelectedRecord(sortedRecords[0]);
+      setCurrentIndex(0);
     }
   };
 
@@ -42,6 +52,9 @@ const SalesDashboard = () => {
     const record = salesRecords.find(r => r.date === dateStr);
     if (record) {
       setSelectedRecord(record);
+      // Update the current index based on the selected date
+      const index = salesRecords.findIndex(r => r.date === dateStr);
+      setCurrentIndex(index >= 0 ? index : 0);
       setIsEditing(false);
     }
   };
@@ -113,6 +126,18 @@ const SalesDashboard = () => {
     }));
   };
 
+  const handleIndexChange = (index: number) => {
+    if (index >= 0 && index < salesRecords.length) {
+      setCurrentIndex(index);
+      setSelectedRecord(salesRecords[index]);
+      setIsEditing(false);
+    }
+  };
+
+  const sortedRecords = [...salesRecords].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   if (salesRecords.length === 0) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
@@ -142,14 +167,11 @@ const SalesDashboard = () => {
                   <SelectValue placeholder="Select a date" />
                 </SelectTrigger>
                 <SelectContent>
-                  {salesRecords
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map(record => (
-                      <SelectItem key={record.date} value={record.date}>
-                        {format(new Date(record.date), "MMMM d, yyyy")}
-                      </SelectItem>
-                    ))
-                  }
+                  {sortedRecords.map(record => (
+                    <SelectItem key={record.date} value={record.date}>
+                      {format(new Date(record.date), "MMMM d, yyyy")}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {!isEditing && (
@@ -183,6 +205,33 @@ const SalesDashboard = () => {
         <CardContent>
           {selectedRecord && (
             <div className="space-y-6">
+              {/* Index-based Navigation */}
+              <div className="w-full flex justify-center my-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handleIndexChange(currentIndex - 1)}
+                        className={currentIndex <= 0 ? "opacity-50 pointer-events-none" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    <PaginationItem>
+                      <span className="flex items-center px-4 font-medium">
+                        {currentIndex + 1} of {salesRecords.length}
+                      </span>
+                    </PaginationItem>
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handleIndexChange(currentIndex + 1)}
+                        className={currentIndex >= salesRecords.length - 1 ? "opacity-50 pointer-events-none" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+              
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "details" | "summary")}>
                 <TabsList className="mb-4">
                   <TabsTrigger value="details">Detailed View</TabsTrigger>
@@ -221,7 +270,7 @@ const SalesDashboard = () => {
                     ) : (
                       <>
                         <RecordDetails record={selectedRecord} />
-                        <DenominationDetails record={selectedRecord} />
+                        <DetailedSummary record={selectedRecord} />
                       </>
                     )}
                   </div>
@@ -290,61 +339,75 @@ const RecordDetails = ({ record }: { record: SalesRecord }) => {
   );
 };
 
-const DenominationDetails = ({ record }: { record: SalesRecord }) => {
-  const denominationItems = [
-    { value: 500, key: 'd500' as keyof SalesRecord['denominations'] },
-    { value: 200, key: 'd200' as keyof SalesRecord['denominations'] },
-    { value: 100, key: 'd100' as keyof SalesRecord['denominations'] },
-    { value: 50, key: 'd50' as keyof SalesRecord['denominations'] },
-    { value: 20, key: 'd20' as keyof SalesRecord['denominations'] },
-    { value: 10, key: 'd10' as keyof SalesRecord['denominations'] },
-    { value: 5, key: 'd5' as keyof SalesRecord['denominations'] }
-  ];
-
+// New Detailed Summary component
+const DetailedSummary = ({ record }: { record: SalesRecord }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Cash Denominations</CardTitle>
+        <CardTitle className="text-xl">Financial Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {denominationItems.map(({ value, key }) => (
-            <div key={key} className="flex justify-between py-1 border-b">
-              <span>{`₹${value} × ${record.denominations[key] || 0}`}</span>
-              <span className="font-medium">₹{((record.denominations[key] || 0) * value).toLocaleString()}</span>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <h3 className="font-medium col-span-2 border-b pb-1">Cash Flow Breakdown</h3>
+            <DetailItem label="Opening Balance" value={`₹${record.openingCash.toLocaleString()}`} />
+            <DetailItem label="Total POS Sales" value={`₹${record.totalSalesPOS.toLocaleString()}`} />
+            <DetailItem label="Paytm Sales" value={`₹${(record.paytmSales).toLocaleString()}`} />
+            <DetailItem label="Cash Sales" value={`₹${(record.totalCashSales || 0).toLocaleString()}`} />
+            <DetailItem label="Total Expenses" value={`₹${(record.totalExpenses || 0).toLocaleString()}`} />
+            <DetailItem label="Cash Withdrawn" value={`₹${record.cashWithdrawn.toLocaleString()}`} />
+          </div>
+          
+          <div className="pt-4 border-t">
+            <h3 className="font-medium mb-2">Final Calculations</h3>
+            <div className="space-y-2">
+              <DetailItem 
+                label="Expected Cash" 
+                value={`₹${(record.totalCash || 0).toLocaleString()}`} 
+                className="text-blue-600"
+              />
+              <DetailItem 
+                label="Actual Cash (Denominations)" 
+                value={`₹${(record.totalFromDenominations || 0).toLocaleString()}`} 
+                className="text-blue-600"
+              />
+              <DetailItem 
+                label="Closing Cash" 
+                value={`₹${(record.closingCash || 0).toLocaleString()}`} 
+                className="font-bold text-lg"
+              />
+              <DetailItem 
+                label="Cash Difference" 
+                value={`₹${(record.cashDifference || 0).toLocaleString()}`} 
+                className={`font-bold text-lg ${(record.cashDifference || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}
+              />
             </div>
-          ))}
-          
-          <div className="pt-4 flex justify-between items-center">
-            <span className="font-medium">Total Amount:</span>
-            <span className="text-xl font-bold text-blue-600">
-              ₹{record.totalFromDenominations?.toLocaleString() || '0'}
-            </span>
           </div>
           
-          <div className="pt-4 flex justify-between border-t mt-2">
-            <span className="font-medium">Closing Cash:</span>
-            <span className="text-xl font-bold text-blue-600">
-              ₹{record.closingCash?.toLocaleString() || '0'}
-            </span>
-          </div>
-          
-          <div className="pt-2 flex justify-between">
-            <span className="font-medium">Cash Difference:</span>
-            <span className={`text-lg font-bold ${(record.cashDifference || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
-              ₹{record.cashDifference?.toLocaleString() || '0'}
-            </span>
-          </div>
+          {Math.abs(record.cashDifference || 0) > 100 && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <p className="text-amber-700 font-medium">Significant cash difference detected!</p>
+              <p className="text-sm text-amber-600">Please verify your calculations and denominatio counts.</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   );
 };
 
-const DetailItem = ({ label, value }: { label: string; value: string }) => (
+const DetailItem = ({ 
+  label, 
+  value,
+  className = "" 
+}: { 
+  label: string; 
+  value: string;
+  className?: string;
+}) => (
   <div className="flex justify-between py-1">
     <span className="text-gray-600">{label}</span>
-    <span className="font-medium">{value}</span>
+    <span className={`font-medium ${className}`}>{value}</span>
   </div>
 );
 

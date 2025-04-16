@@ -33,6 +33,7 @@ const DenominationCounter = ({
   };
 
   const totalAmount = calculateTotalFromDenominations(denominations);
+  const isExceeded = cashWithdrawn > totalAmount;
 
   const denominationItems = [
     { value: 500, key: 'd500' as keyof SalesRecord['denominations'] },

@@ -1,16 +1,10 @@
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { SalesRecord, emptySalesRecord } from "@/types/salesTypes";
 import { getAllSalesRecords, saveSalesRecord } from "@/services/salesService";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SalesBasicInfo from "./SalesBasicInfo";
-import ExpensesForm from "./ExpensesForm";
-import DenominationCounter from "./DenominationCounter";
-import SalesSummary from "./SalesSummary";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaCalendarAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { 
@@ -21,6 +15,8 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
+import RecordDetails from './RecordDetails';
+import DetailedSummary from './DetailedSummary';
 
 const SalesDashboard = () => {
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
@@ -28,7 +24,7 @@ const SalesDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecord, setEditedRecord] = useState<SalesRecord>(emptySalesRecord);
   const [viewMode, setViewMode] = useState<"details" | "summary">("details");
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     loadSalesRecords();
@@ -38,7 +34,6 @@ const SalesDashboard = () => {
     const records = getAllSalesRecords();
     setSalesRecords(records);
     
-    // Select the most recent record by default if available
     if (records.length > 0) {
       const sortedRecords = [...records].sort((a, b) => 
         new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -52,7 +47,6 @@ const SalesDashboard = () => {
     const record = salesRecords.find(r => r.date === dateStr);
     if (record) {
       setSelectedRecord(record);
-      // Update the current index based on the selected date
       const index = salesRecords.findIndex(r => r.date === dateStr);
       setCurrentIndex(index >= 0 ? index : 0);
       setIsEditing(false);
@@ -73,7 +67,7 @@ const SalesDashboard = () => {
   const handleEditSave = () => {
     try {
       saveSalesRecord(editedRecord);
-      loadSalesRecords(); // Reload all records
+      loadSalesRecords();
       setIsEditing(false);
       toast.success("Sales record updated successfully");
     } catch (error) {
@@ -232,54 +226,41 @@ const SalesDashboard = () => {
                 </Pagination>
               </div>
               
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "details" | "summary")}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="details">Detailed View</TabsTrigger>
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="details">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Show either the editing form or the static display */}
-                    {isEditing ? (
-                      <>
-                        <SalesBasicInfo 
-                          data={{
-                            date: editedRecord.date,
-                            openingCash: editedRecord.openingCash,
-                            totalSalesPOS: editedRecord.totalSalesPOS,
-                            paytmSales: editedRecord.paytmSales
-                          }}
-                          onChange={handleBasicInfoChange}
-                        />
-                        <ExpensesForm 
-                          data={{
-                            employeeAdvances: editedRecord.employeeAdvances,
-                            cleaningExpenses: editedRecord.cleaningExpenses,
-                            otherExpenses: editedRecord.otherExpenses
-                          }}
-                          onChange={handleExpensesChange}
-                        />
-                        <DenominationCounter 
-                          denominations={editedRecord.denominations}
-                          cashWithdrawn={editedRecord.cashWithdrawn}
-                          onChange={handleDenominationsChange}
-                          onCashWithdrawnChange={handleCashWithdrawnChange}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <RecordDetails record={selectedRecord} />
-                        <DetailedSummary record={selectedRecord} />
-                      </>
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="summary">
-                  <SalesSummary record={isEditing ? editedRecord : selectedRecord} />
-                </TabsContent>
-              </Tabs>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Show either the editing form or the static display */}
+                {isEditing ? (
+                  <>
+                    <SalesBasicInfo 
+                      data={{
+                        date: editedRecord.date,
+                        openingCash: editedRecord.openingCash,
+                        totalSalesPOS: editedRecord.totalSalesPOS,
+                        paytmSales: editedRecord.paytmSales
+                      }}
+                      onChange={handleBasicInfoChange}
+                    />
+                    <ExpensesForm 
+                      data={{
+                        employeeAdvances: editedRecord.employeeAdvances,
+                        cleaningExpenses: editedRecord.cleaningExpenses,
+                        otherExpenses: editedRecord.otherExpenses
+                      }}
+                      onChange={handleExpensesChange}
+                    />
+                    <DenominationCounter 
+                      denominations={editedRecord.denominations}
+                      cashWithdrawn={editedRecord.cashWithdrawn}
+                      onChange={handleDenominationsChange}
+                      onCashWithdrawnChange={handleCashWithdrawnChange}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <RecordDetails record={selectedRecord} />
+                    <DetailedSummary record={selectedRecord} />
+                  </>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
@@ -288,7 +269,6 @@ const SalesDashboard = () => {
   );
 };
 
-// Static display components for read-only view
 const RecordDetails = ({ record }: { record: SalesRecord }) => {
   return (
     <Card>
@@ -339,7 +319,6 @@ const RecordDetails = ({ record }: { record: SalesRecord }) => {
   );
 };
 
-// New Detailed Summary component
 const DetailedSummary = ({ record }: { record: SalesRecord }) => {
   return (
     <Card>

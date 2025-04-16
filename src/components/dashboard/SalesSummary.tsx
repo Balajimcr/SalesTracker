@@ -14,16 +14,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaRupeeSign } from "react-icons/fa";
 
 interface SalesSummaryProps {
-  data: SalesRecord;
+  record: SalesRecord;
 }
 
-const SalesSummary = ({ data }: SalesSummaryProps) => {
+const SalesSummary = ({ record }: SalesSummaryProps) => {
   // Calculate all derived values
-  const totalExpenses = calculateTotalExpenses(data);
-  const totalFromDenominations = calculateTotalFromDenominations(data.denominations);
-  const closingCash = calculateClosingCash(totalFromDenominations, data.cashWithdrawn);
-  const totalCashSales = calculateTotalCashSales(data.totalSalesPOS, data.paytmSales);
-  const totalCash = calculateTotalCash(data.openingCash, totalCashSales, totalExpenses);
+  const totalExpenses = calculateTotalExpenses(record);
+  const totalFromDenominations = calculateTotalFromDenominations(record.denominations);
+  const closingCash = calculateClosingCash(totalFromDenominations, record.cashWithdrawn);
+  const totalCashSales = calculateTotalCashSales(record.totalSalesPOS, record.paytmSales);
+  const totalCash = calculateTotalCash(record.openingCash, totalCashSales, totalExpenses);
   let cashDifference = calculateCashDifference(totalCash, totalFromDenominations);
   
   // Apply masking for large negative differences
@@ -43,7 +43,7 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
   const showLargeWarning = Math.abs(cashDifference) > 1000;
 
   const summaryItems = [
-    { label: "Total Sales", value: data.totalSalesPOS },
+    { label: "Total Sales", value: record.totalSalesPOS },
     { label: "Cash", value: totalCashSales },
     { label: "Total Cash", value: totalCash },
     { label: "Closing Cash", value: closingCash }
@@ -57,9 +57,9 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1"> {/* Reduced space-y from 3 to 1 */}
+        <div className="space-y-1">
           {summaryItems.map((item) => (
-            <div key={item.label} className="flex justify-between items-center py-1 border-none"> {/* Removed border-b, reduced py from 2 to 1 */}
+            <div key={item.label} className="flex justify-between items-center py-1 border-none">
               <span className="font-medium">{item.label}:</span>
               <span className="text-lg font-semibold flex items-center">
                 <FaRupeeSign className="mr-1 text-sm" />
@@ -68,7 +68,7 @@ const SalesSummary = ({ data }: SalesSummaryProps) => {
             </div>
           ))}
           
-          <div className="flex justify-between items-center py-2 mt-1"> {/* Reduced py from 3 to 2, reduced mt from 2 to 1 */}
+          <div className="flex justify-between items-center py-2 mt-1">
             <span className="font-bold text-lg">Difference:</span>
             <span className={`text-2xl font-bold flex items-center ${statusColors[differenceStatus]}`}>
               <FaRupeeSign className="mr-1" />

@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FaCalendarAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaCalendarAlt, FaEdit, FaSave, FaTimes, FaTable } from "react-icons/fa";
 import { toast } from "sonner";
 import { 
   Pagination, 
@@ -21,14 +21,23 @@ import DetailedSummary from './DetailedSummary';
 import SalesBasicInfo from './SalesBasicInfo';
 import ExpensesForm from './ExpensesForm';
 import DenominationCounter from './DenominationCounter';
+import { 
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const SalesDashboard = () => {
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<SalesRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecord, setEditedRecord] = useState<SalesRecord>(emptySalesRecord);
-  const [viewMode, setViewMode] = useState<"details" | "summary">("details");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showFullTable, setShowFullTable] = useState(false);
 
   useEffect(() => {
     loadSalesRecords();
@@ -129,6 +138,15 @@ const SalesDashboard = () => {
       setCurrentIndex(index);
       setSelectedRecord(salesRecords[index]);
       setIsEditing(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, "dd-MMM-yy");
+    } catch (error) {
+      return dateString;
     }
   };
 
@@ -268,6 +286,104 @@ const SalesDashboard = () => {
             </div>
           )}
         </CardContent>
+      </Card>
+
+      {/* Full Records Table Section */}
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              <FaTable className="text-blue-500" />
+              <span>Sales Records Data Table</span>
+            </CardTitle>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFullTable(!showFullTable)}
+            >
+              {showFullTable ? "Hide Details" : "Show Details"}
+            </Button>
+          </div>
+        </CardHeader>
+        {showFullTable && (
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-100 sticky top-0">
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Opening Cash</TableHead>
+                    <TableHead className="whitespace-nowrap">Expenses Shop</TableHead>
+                    <TableHead className="whitespace-nowrap">Denomination Total</TableHead>
+                    <TableHead className="whitespace-nowrap">Total Cash</TableHead>
+                    <TableHead className="whitespace-nowrap">Total Sales POS</TableHead>
+                    <TableHead className="whitespace-nowrap">Paytm</TableHead>
+                    <TableHead className="whitespace-nowrap">Cash Withdrawn</TableHead>
+                    <TableHead className="whitespace-nowrap">Employee 1</TableHead>
+                    <TableHead className="whitespace-nowrap">Employee 2</TableHead>
+                    <TableHead className="whitespace-nowrap">Employee 3</TableHead>
+                    <TableHead className="whitespace-nowrap">Employee 4</TableHead>
+                    <TableHead className="whitespace-nowrap">Cleaning</TableHead>
+                    <TableHead className="whitespace-nowrap">Other Expenses Name</TableHead>
+                    <TableHead className="whitespace-nowrap">Other Expenses Amount</TableHead>
+                    <TableHead className="whitespace-nowrap">Other Expenses Name_1</TableHead>
+                    <TableHead className="whitespace-nowrap">Other Expenses Amount_1</TableHead>
+                    <TableHead className="whitespace-nowrap">500</TableHead>
+                    <TableHead className="whitespace-nowrap">200</TableHead>
+                    <TableHead className="whitespace-nowrap">100</TableHead>
+                    <TableHead className="whitespace-nowrap">50</TableHead>
+                    <TableHead className="whitespace-nowrap">20</TableHead>
+                    <TableHead className="whitespace-nowrap">10</TableHead>
+                    <TableHead className="whitespace-nowrap">5</TableHead>
+                    <TableHead className="whitespace-nowrap">Cash Difference</TableHead>
+                    <TableHead className="whitespace-nowrap">Closing Cash</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedRecords.map((record, index) => (
+                    <TableRow key={index} className={index === currentIndex ? "bg-blue-50" : ""}>
+                      <TableCell className="whitespace-nowrap">{formatDate(record.date)}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.openingCash}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.totalExpenses}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.totalFromDenominations}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.totalCash}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.totalSalesPOS}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.paytmSales}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.cashWithdrawn}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.employeeAdvances.employee1}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.employeeAdvances.employee2}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.employeeAdvances.employee3}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.employeeAdvances.employee4}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.cleaningExpenses}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.otherExpenses.name1}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.otherExpenses.amount1}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.otherExpenses.name2}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.otherExpenses.amount2}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d500}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d200}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d100}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d50}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d20}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d10}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.denominations.d5}</TableCell>
+                      <TableCell 
+                        className={`whitespace-nowrap ${
+                          (record.cashDifference || 0) < 0 
+                            ? "text-red-600" 
+                            : (record.cashDifference || 0) > 0 
+                              ? "text-blue-600" 
+                              : ""
+                        }`}
+                      >
+                        {record.cashDifference}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{record.closingCash}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

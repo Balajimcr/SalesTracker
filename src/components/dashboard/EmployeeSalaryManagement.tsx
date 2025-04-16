@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,14 +10,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { format, parse, addMonths, subMonths } from "date-fns";
 import { toast } from "@/components/ui/sonner";
-import { FaMoneyBillWave, FaRegCalendarAlt, FaUser, FaPiggyBank, FaFileInvoiceDollar } from "react-icons/fa";
+import { 
+  FaMoneyBillWave, 
+  FaRegCalendarAlt, 
+  FaUser, 
+  FaPiggyBank, 
+  FaFileInvoiceDollar, 
+  FaUserPlus, 
+  FaUserMinus 
+} from "react-icons/fa";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Employee } from './EmployeeManagement';
 
-// Interfaces for our data structures
-interface Employee {
-  id: string;
-  name: string;
-}
-
+// Interface for our data structures
 interface SalaryAdvance {
   id: string;
   date: string;
@@ -48,13 +54,11 @@ const EmployeeSalaryManagement = () => {
   const [advanceType, setAdvanceType] = useState<'bank' | 'cash'>('bank');
   
   // State for employees and salaries
-  const [employees, setEmployees] = useState<Employee[]>([
-    { id: '1', name: 'Employee 1' },
-    { id: '2', name: 'Employee 2' },
-    { id: '3', name: 'Employee 3' },
-    { id: '4', name: 'Employee 4' }
-  ]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [newEmployeeName, setNewEmployeeName] = useState("");
+  const [newEmployeeMobile, setNewEmployeeMobile] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
   
   // State for salary management
   const [advances, setAdvances] = useState<SalaryAdvance[]>([]);
@@ -66,6 +70,71 @@ const EmployeeSalaryManagement = () => {
   const months = Array.from({ length: 12 }, (_, i) => 
     format(subMonths(new Date(), i), "yyyy-MM")
   ).reverse();
+  
+  // Load employees from localStorage on component mount
+  useEffect(() => {
+    const storedEmployees = localStorage.getItem('employees');
+    if (storedEmployees) {
+      setEmployees(JSON.parse(storedEmployees));
+    }
+    
+    const storedAdvances = localStorage.getItem('employeeSalaryAdvances');
+    const storedSalaries = localStorage.getItem('employeeSalaryData');
+    
+    if (storedAdvances) {
+      setAdvances(JSON.parse(storedAdvances));
+    }
+    
+    if (storedSalaries) {
+      setSalaries(JSON.parse(storedSalaries));
+    }
+  }, []);
+  
+  // Add new employee
+  const handleAddEmployee = () => {
+    if (!newEmployeeName.trim()) {
+      toast.error("Employee name is required!");
+      return;
+    }
+    
+    const newEmployee: Employee = {
+      id: Date.now().toString(),
+      name: newEmployeeName,
+      mobile: newEmployeeMobile,
+      joiningDate: new Date().toISOString().split('T')[0]
+    };
+    
+    const updatedEmployees = [...employees, newEmployee];
+    setEmployees(updatedEmployees);
+    localStorage.setItem('employees', JSON.stringify(updatedEmployees));
+    
+    setNewEmployeeName("");
+    setNewEmployeeMobile("");
+    setIsAddEmployeeDialogOpen(false);
+    toast.success("Employee added successfully!");
+  };
+  
+  // Remove employee
+  const handleRemoveEmployee = (employeeId: string) => {
+    // First check if employee has advances or salaries
+    const hasAdvances = advances.some(a => a.employeeId === employeeId);
+    const hasSalaries = salaries.some(s => s.employeeId === employeeId);
+    
+    if (hasAdvances || hasSalaries) {
+      toast.error("Cannot remove employee with existing salary records or advances");
+      return;
+    }
+    
+    const updatedEmployees = employees.filter(e => e.id !== employeeId);
+    setEmployees(updatedEmployees);
+    localStorage.setItem('employees', JSON.stringify(updatedEmployees));
+    
+    if (selectedEmployee === employeeId) {
+      setSelectedEmployee("");
+    }
+    
+    toast.success("Employee removed successfully!");
+  };
   
   // Handle saving a new advance/transfer
   const handleSaveAdvance = () => {
@@ -144,20 +213,6 @@ const EmployeeSalaryManagement = () => {
     toast.success("Salary data updated successfully");
   };
   
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    const storedAdvances = localStorage.getItem('employeeSalaryAdvances');
-    const storedSalaries = localStorage.getItem('employeeSalaryData');
-    
-    if (storedAdvances) {
-      setAdvances(JSON.parse(storedAdvances));
-    }
-    
-    if (storedSalaries) {
-      setSalaries(JSON.parse(storedSalaries));
-    }
-  }, []);
-  
   // Filtering and sorting functions
   const filteredAdvances = selectedEmployee 
     ? advances.filter(a => a.employeeId === selectedEmployee)
@@ -167,13 +222,62 @@ const EmployeeSalaryManagement = () => {
     ? salaries.filter(s => s.employeeId === selectedEmployee)
     : salaries;
   
+  // When employees are updated, update the dropdown selection if needed
+  useEffect(() => {
+    if (selectedEmployee && !employees.some(e => e.id === selectedEmployee)) {
+      setSelectedEmployee("");
+    }
+  }, [employees, selectedEmployee]);
+  
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FaMoneyBillWave className="text-violet-500" />
-            <span>Employee Salary Management</span>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FaMoneyBillWave className="text-violet-500" />
+              <span>Employee Salary Management</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setIsAddEmployeeDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    <FaUserPlus className="mr-2" />
+                    Add Employee
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Employee</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Employee Name</Label>
+                      <Input
+                        id="name"
+                        value={newEmployeeName}
+                        onChange={(e) => setNewEmployeeName(e.target.value)}
+                        placeholder="Enter employee name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile">Mobile Number</Label>
+                      <Input
+                        id="mobile"
+                        value={newEmployeeMobile}
+                        onChange={(e) => setNewEmployeeMobile(e.target.value)}
+                        placeholder="Enter mobile number"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddEmployee} className="bg-green-600 hover:bg-green-700">
+                      Save Employee
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -224,21 +328,27 @@ const EmployeeSalaryManagement = () => {
                       
                       <div className="space-y-2">
                         <Label>Employee</Label>
-                        <Select 
-                          value={advanceEmployee} 
-                          onValueChange={setAdvanceEmployee}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an employee" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {employees.map((employee) => (
-                              <SelectItem key={employee.id} value={employee.id}>
-                                {employee.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        {employees.length > 0 ? (
+                          <Select 
+                            value={advanceEmployee} 
+                            onValueChange={setAdvanceEmployee}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an employee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {employees.map((employee) => (
+                                <SelectItem key={employee.id} value={employee.id}>
+                                  {employee.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            No employees available. Please add employees first.
+                          </div>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
@@ -282,6 +392,7 @@ const EmployeeSalaryManagement = () => {
                       <Button 
                         className="w-full bg-violet-600 hover:bg-violet-700" 
                         onClick={handleSaveAdvance}
+                        disabled={employees.length === 0}
                       >
                         Save Entry
                       </Button>
@@ -291,25 +402,53 @@ const EmployeeSalaryManagement = () => {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Filter by Employee</CardTitle>
+                    <CardTitle>Employees</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Select 
-                      value={selectedEmployee} 
-                      onValueChange={setSelectedEmployee}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Employees" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-employees">All Employees</SelectItem>
-                        {employees.map((employee) => (
-                          <SelectItem key={employee.id} value={employee.id}>
-                            {employee.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Filter by Employee</Label>
+                        <Select 
+                          value={selectedEmployee} 
+                          onValueChange={setSelectedEmployee}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Employees" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all-employees">All Employees</SelectItem>
+                            {employees.map((employee) => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2 border rounded-md p-4">
+                        <h3 className="font-medium mb-2">Employee List</h3>
+                        {employees.length > 0 ? (
+                          <ul className="space-y-2">
+                            {employees.map((employee) => (
+                              <li key={employee.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md">
+                                <span>{employee.name}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleRemoveEmployee(employee.id)}
+                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                >
+                                  <FaUserMinus className="h-4 w-4" />
+                                </Button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No employees added yet</p>
+                        )}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -320,31 +459,37 @@ const EmployeeSalaryManagement = () => {
                   <CardTitle>Advance & Transfer History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                        <TableHead>Comments</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredAdvances.map((advance) => {
-                        const employee = employees.find(e => e.id === advance.employeeId);
-                        return (
-                          <TableRow key={advance.id}>
-                            <TableCell>{advance.date}</TableCell>
-                            <TableCell>{employee?.name || "Unknown"}</TableCell>
-                            <TableCell>{advance.type === 'bank' ? 'Bank' : 'Cash'}</TableCell>
-                            <TableCell className="text-right">₹{advance.amount.toLocaleString()}</TableCell>
-                            <TableCell>{advance.comments || "—"}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  {filteredAdvances.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Employee</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead>Comments</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAdvances.map((advance) => {
+                          const employee = employees.find(e => e.id === advance.employeeId);
+                          return (
+                            <TableRow key={advance.id}>
+                              <TableCell>{advance.date}</TableCell>
+                              <TableCell>{employee?.name || "Unknown"}</TableCell>
+                              <TableCell>{advance.type === 'bank' ? 'Bank' : 'Cash'}</TableCell>
+                              <TableCell className="text-right">₹{advance.amount.toLocaleString()}</TableCell>
+                              <TableCell>{advance.comments || "—"}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No advance records found.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -376,31 +521,38 @@ const EmployeeSalaryManagement = () => {
                       </Select>
                     </div>
                     
-                    <div className="grid gap-4">
-                      {employees.map((employee) => (
-                        <div key={employee.id} className="grid grid-cols-2 gap-4 p-4 border rounded-md">
-                          <div className="font-medium">{employee.name}</div>
-                          <div>
-                            <Input
-                              type="number"
-                              placeholder="Enter salary"
-                              value={employeeSalaries[employee.id] || ""}
-                              onChange={(e) => {
-                                const value = e.target.value ? parseFloat(e.target.value) : 0;
-                                setEmployeeSalaries(prev => ({
-                                  ...prev,
-                                  [employee.id]: value
-                                }));
-                              }}
-                            />
+                    {employees.length > 0 ? (
+                      <div className="grid gap-4">
+                        {employees.map((employee) => (
+                          <div key={employee.id} className="grid grid-cols-2 gap-4 p-4 border rounded-md">
+                            <div className="font-medium">{employee.name}</div>
+                            <div>
+                              <Input
+                                type="number"
+                                placeholder="Enter salary"
+                                value={employeeSalaries[employee.id] || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value ? parseFloat(e.target.value) : 0;
+                                  setEmployeeSalaries(prev => ({
+                                    ...prev,
+                                    [employee.id]: value
+                                  }));
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No employees available. Please add employees first.</p>
+                      </div>
+                    )}
                     
                     <Button 
                       className="w-full bg-violet-600 hover:bg-violet-700" 
                       onClick={handleUpdateSalary}
+                      disabled={employees.length === 0}
                     >
                       Update Salaries
                     </Button>
@@ -414,37 +566,43 @@ const EmployeeSalaryManagement = () => {
                   <CardTitle>Monthly Salary Records</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Month</TableHead>
-                        <TableHead>Employee</TableHead>
-                        <TableHead className="text-right">Salary</TableHead>
-                        <TableHead className="text-right">Bank Transfers</TableHead>
-                        <TableHead className="text-right">Cash Advances</TableHead>
-                        <TableHead className="text-right">Total Advance</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredSalaries.map((salary) => {
-                        const employee = employees.find(e => e.id === salary.employeeId);
-                        return (
-                          <TableRow key={salary.id}>
-                            <TableCell>{format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}</TableCell>
-                            <TableCell>{employee?.name || "Unknown"}</TableCell>
-                            <TableCell className="text-right">₹{salary.salary.toLocaleString()}</TableCell>
-                            <TableCell className="text-right">₹{salary.monthlyBankTransfers.toLocaleString()}</TableCell>
-                            <TableCell className="text-right">₹{salary.monthlyCashWithdrawn.toLocaleString()}</TableCell>
-                            <TableCell className="text-right">₹{salary.totalSalaryAdvance.toLocaleString()}</TableCell>
-                            <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              ₹{salary.balanceCurrent.toLocaleString()}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  {filteredSalaries.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Month</TableHead>
+                          <TableHead>Employee</TableHead>
+                          <TableHead className="text-right">Salary</TableHead>
+                          <TableHead className="text-right">Bank Transfers</TableHead>
+                          <TableHead className="text-right">Cash Advances</TableHead>
+                          <TableHead className="text-right">Total Advance</TableHead>
+                          <TableHead className="text-right">Balance</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredSalaries.map((salary) => {
+                          const employee = employees.find(e => e.id === salary.employeeId);
+                          return (
+                            <TableRow key={salary.id}>
+                              <TableCell>{format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}</TableCell>
+                              <TableCell>{employee?.name || "Unknown"}</TableCell>
+                              <TableCell className="text-right">₹{salary.salary.toLocaleString()}</TableCell>
+                              <TableCell className="text-right">₹{salary.monthlyBankTransfers.toLocaleString()}</TableCell>
+                              <TableCell className="text-right">₹{salary.monthlyCashWithdrawn.toLocaleString()}</TableCell>
+                              <TableCell className="text-right">₹{salary.totalSalaryAdvance.toLocaleString()}</TableCell>
+                              <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                ₹{salary.balanceCurrent.toLocaleString()}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No salary records found.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -476,8 +634,8 @@ const EmployeeSalaryManagement = () => {
                       </Select>
                     </div>
                     
-                    {selectedEmployee && (
-                      <>
+                    {selectedEmployee ? (
+                      filteredSalaries.length > 0 ? (
                         <Card>
                           <CardContent className="pt-6">
                             <Table>
@@ -510,7 +668,15 @@ const EmployeeSalaryManagement = () => {
                             </Table>
                           </CardContent>
                         </Card>
-                      </>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>No salary records found for this employee.</p>
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>Please select an employee to view their financial report.</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

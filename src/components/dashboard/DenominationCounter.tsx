@@ -1,3 +1,4 @@
+
 import { SalesRecord } from "@/types/salesTypes";
 import { calculateTotalFromDenominations } from "@/utils/salesCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,13 +23,13 @@ const DenominationCounter = ({
     const numValue = value === '' ? 0 : parseInt(value, 10);
     onChange({
       ...denominations,
-      [key]: isNaN(numValue) ? 0 : numValue
+      [key]: isNaN(numValue) ? 0 : Math.max(0, numValue)
     });
   };
 
   const handleCashWithdrawnChange = (value: string) => {
     const numValue = value === '' ? 0 : parseFloat(value);
-    onCashWithdrawnChange(isNaN(numValue) ? 0 : numValue);
+    onCashWithdrawnChange(isNaN(numValue) ? 0 : Math.max(0, numValue));
   };
 
   const totalAmount = calculateTotalFromDenominations(denominations);
@@ -62,6 +63,7 @@ const DenominationCounter = ({
               <Input
                 id={key}
                 type="number"
+                min="0"  // Added min value
                 step="1"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
@@ -91,6 +93,7 @@ const DenominationCounter = ({
               <Input
                 id="cashWithdrawn"
                 type="number"
+                min="0"  // Added min value
                 step="1"
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}

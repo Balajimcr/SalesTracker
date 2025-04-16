@@ -1,14 +1,16 @@
+
+import React from 'react';
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { FaCalendarAlt, FaRupeeSign, FaCreditCard } from "react-icons/fa";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SalesBasicInfoProps {
   data: Pick<SalesRecord, 'date' | 'openingCash' | 'totalSalesPOS' | 'paytmSales'>;
@@ -85,6 +87,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="openingCash"
               type="number"
+              min="0"  // Added min value
               step="100"
               value={data.openingCash || ''}
               onChange={(e) => handleChange('openingCash', e.target.value)}
@@ -99,6 +102,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="totalSalesPOS"
               type="number"
+              min="0"  // Added min value
               step="100"
               value={data.totalSalesPOS || ''}
               onChange={(e) => handleChange('totalSalesPOS', e.target.value)}
@@ -113,6 +117,7 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="paytmSales"
               type="number"
+              min="0"  // Added min value
               step="100"
               value={data.paytmSales || ''}
               onChange={(e) => handleChange('paytmSales', e.target.value)}

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { SalesRecord } from "@/types/salesTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,12 +33,12 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
 
   const handleEmployeeChange = (employee: keyof SalesRecord['employeeAdvances'], value: string) => {
     const numValue = value === '' ? 0 : parseFloat(value);
-    onChange('employeeAdvances', employee, isNaN(numValue) ? 0 : numValue);
+    onChange('employeeAdvances', employee, isNaN(numValue) ? 0 : Math.max(0, numValue));
   };
 
   const handleCleaningChange = (value: string) => {
     const numValue = value === '' ? 0 : parseFloat(value);
-    onChange('cleaningExpenses', 'cleaningExpenses', isNaN(numValue) ? 0 : numValue);
+    onChange('cleaningExpenses', 'cleaningExpenses', isNaN(numValue) ? 0 : Math.max(0, numValue));
   };
 
   const handleOtherExpenseChange = (
@@ -48,7 +49,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
       onChange('otherExpenses', field, value);
     } else {
       const numValue = value === '' ? 0 : parseFloat(value);
-      onChange('otherExpenses', field, isNaN(numValue) ? 0 : numValue);
+      onChange('otherExpenses', field, isNaN(numValue) ? 0 : Math.max(0, numValue));
     }
   };
 
@@ -83,6 +84,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                     <Input
                       id={employeeKey}
                       type="number"
+                      min="0"  // Added min value
                       step="100"
                       value={data.employeeAdvances[employeeKey as keyof SalesRecord['employeeAdvances']] || ''}
                       onChange={(e) => 
@@ -107,6 +109,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
               <Input
                 id="cleaningExpenses"
                 type="number"
+                min="0"  // Added min value
                 step="100"
                 value={data.cleaningExpenses || ''}
                 onChange={(e) => handleCleaningChange(e.target.value)}
@@ -145,6 +148,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Input
                     id="expenseAmount1"
                     type="number"
+                    min="0"  // Added min value
                     step="100"
                     value={data.otherExpenses.amount1 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount1', e.target.value)}
@@ -180,6 +184,7 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
                   <Input
                     id="expenseAmount2"
                     type="number"
+                    min="0"  // Added min value
                     step="100"
                     value={data.otherExpenses.amount2 || ''}
                     onChange={(e) => handleOtherExpenseChange('amount2', e.target.value)}

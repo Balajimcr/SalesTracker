@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
 import SalesDashboard from "./SalesDashboard";
-import { FaShoppingBag, FaUsers, FaChartLine } from "react-icons/fa";
+import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave } from "react-icons/fa";
+import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
+  const [employeeActiveTab, setEmployeeActiveTab] = useState("management");
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -57,7 +59,26 @@ const Dashboard = () => {
           </TabsContent>
           
           <TabsContent value="employees">
-            <EmployeeManagement />
+            <Tabs value={employeeActiveTab} onValueChange={setEmployeeActiveTab} className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="management" className="flex items-center gap-2">
+                  <FaUsers />
+                  <span>Employee Management</span>
+                </TabsTrigger>
+                <TabsTrigger value="salary" className="flex items-center gap-2">
+                  <FaMoneyBillWave />
+                  <span>Salary Management</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="management">
+                <EmployeeManagement />
+              </TabsContent>
+              
+              <TabsContent value="salary">
+                <EmployeeSalaryManagement />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </main>

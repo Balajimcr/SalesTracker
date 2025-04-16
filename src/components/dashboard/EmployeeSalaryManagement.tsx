@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,9 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { format, parse, addMonths, subMonths } from "date-fns";
 import { toast } from "@/components/ui/sonner";
 import { FaMoneyBillWave, FaRegCalendarAlt, FaUser, FaPiggyBank, FaFileInvoiceDollar } from "react-icons/fa";
-import { Employee } from "./EmployeeManagement";
 
-// Sample data structures
+// Interfaces for our data structures
+interface Employee {
+  id: string;
+  name: string;
+}
+
 interface SalaryAdvance {
   id: string;
   date: string;
@@ -36,30 +40,6 @@ interface EmployeeSalary {
   balanceTillDate: number;
 }
 
-// Helper function to get current month in YYYY-MM format
-const getCurrentMonth = () => {
-  return format(new Date(), "yyyy-MM");
-};
-
-// Helper function to format month for display
-const formatMonthForDisplay = (monthStr: string) => {
-  const date = parse(monthStr, "yyyy-MM", new Date());
-  return format(date, "MMMM yyyy");
-};
-
-// Generate last 12 months for dropdown
-const generateLastTwelveMonths = () => {
-  const result = [];
-  let currentDate = new Date();
-  
-  for (let i = 0; i < 12; i++) {
-    result.push(format(currentDate, "yyyy-MM"));
-    currentDate = subMonths(currentDate, 1);
-  }
-  
-  return result;
-};
-
 const EmployeeSalaryManagement = () => {
   // State for advances/transfers
   const [advanceDate, setAdvanceDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -67,60 +47,26 @@ const EmployeeSalaryManagement = () => {
   const [advanceEmployee, setAdvanceEmployee] = useState("");
   const [advanceComments, setAdvanceComments] = useState("");
   const [advanceType, setAdvanceType] = useState<'bank' | 'cash'>('bank');
-  const [advances, setAdvances] = useState<SalaryAdvance[]>([]);
   
-  // State for employees
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  // State for employees and salaries
+  const [employees, setEmployees] = useState<Employee[]>([
+    { id: '1', name: 'Employee 1' },
+    { id: '2', name: 'Employee 2' },
+    { id: '3', name: 'Employee 3' },
+    { id: '4', name: 'Employee 4' }
+  ]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   
   // State for salary management
+  const [advances, setAdvances] = useState<SalaryAdvance[]>([]);
   const [salaries, setSalaries] = useState<EmployeeSalary[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, number>>({});
   
-  // Months for selection
-  const months = generateLastTwelveMonths();
-  
-  // Load employees on component mount
-  useEffect(() => {
-    loadEmployees();
-    loadAdvances();
-    loadSalaries();
-  }, []);
-  
-  // Load employees from localStorage
-  const loadEmployees = () => {
-    const storedEmployees = localStorage.getItem('employees');
-    if (storedEmployees) {
-      setEmployees(JSON.parse(storedEmployees));
-    }
-  };
-  
-  // Load advances from localStorage
-  const loadAdvances = () => {
-    const storedAdvances = localStorage.getItem('employeeSalaryAdvances');
-    if (storedAdvances) {
-      setAdvances(JSON.parse(storedAdvances));
-    }
-  };
-  
-  // Load salaries from localStorage
-  const loadSalaries = () => {
-    const storedSalaries = localStorage.getItem('employeeSalaryData');
-    if (storedSalaries) {
-      const parsedSalaries = JSON.parse(storedSalaries);
-      setSalaries(parsedSalaries);
-      
-      // Initialize salary inputs for the selected month
-      const currentMonthSalaries: Record<string, number> = {};
-      parsedSalaries.forEach((salary: EmployeeSalary) => {
-        if (salary.month === selectedMonth) {
-          currentMonthSalaries[salary.employeeId] = salary.salary;
-        }
-      });
-      setEmployeeSalaries(currentMonthSalaries);
-    }
-  };
+  // Generate last 12 months for dropdown
+  const months = Array.from({ length: 12 }, (_, i) => 
+    format(subMonths(new Date(), i), "yyyy-MM")
+  ).reverse();
   
   // Handle saving a new advance/transfer
   const handleSaveAdvance = () => {
@@ -156,22 +102,14 @@ const EmployeeSalaryManagement = () => {
     toast.success("Salary advance/transfer saved successfully");
   };
   
-  // Handle updating employee salary for the month
+  // Handle updating employee salary
   const handleUpdateSalary = () => {
-    if (Object.keys(employeeSalaries).length === 0) {
-      toast.error("No salary data to update");
-      return;
-    }
-    
-    // Create updated salary records
-    const updatedSalaries = [...salaries.filter(s => s.month !== selectedMonth)];
-    
-    for (const [employeeId, salary] of Object.entries(employeeSalaries)) {
-      if (!salary) continue;
+    const updatedSalaries: EmployeeSalary[] = employees.map(employee => {
+      const salary = employeeSalaries[employee.id] || 0;
       
-      // Calculate total advances for this employee in this month
+      // Calculate advances for this employee in this month
       const employeeAdvances = advances.filter(a => 
-        a.employeeId === employeeId && 
+        a.employeeId === employee.id && 
         a.date.substring(0, 7) === selectedMonth
       );
       
@@ -184,44 +122,21 @@ const EmployeeSalaryManagement = () => {
         .reduce((sum, advance) => sum + advance.amount, 0);
       
       const totalAdvance = bankTransfers + cashWithdrawn;
-      
-      // Calculate sales (45% of salary)
       const totalSales = Math.round(salary / 0.45);
-      
-      // Calculate current month balance
       const balanceCurrent = totalAdvance - salary;
       
-      // Calculate balance till date (including previous months)
-      let balanceTillDate = balanceCurrent;
-      
-      // Find the most recent balance before this month
-      const prevMonths = salaries.filter(s => 
-        s.employeeId === employeeId && s.month < selectedMonth
-      ).sort((a, b) => b.month.localeCompare(a.month));
-      
-      if (prevMonths.length > 0) {
-        balanceTillDate += prevMonths[0].balanceTillDate;
-      }
-      
-      updatedSalaries.push({
-        id: `${selectedMonth}-${employeeId}`,
+      return {
+        id: `${selectedMonth}-${employee.id}`,
         month: selectedMonth,
-        employeeId,
+        employeeId: employee.id,
         salary,
         totalSales,
         monthlyBankTransfers: bankTransfers,
         monthlyCashWithdrawn: cashWithdrawn,
         totalSalaryAdvance: totalAdvance,
         balanceCurrent,
-        balanceTillDate
-      });
-    }
-    
-    // Sort by month and employee
-    updatedSalaries.sort((a, b) => {
-      const monthCompare = a.month.localeCompare(b.month);
-      if (monthCompare !== 0) return monthCompare;
-      return a.employeeId.localeCompare(b.employeeId);
+        balanceTillDate: balanceCurrent  // Simple implementation, could be more complex
+      };
     });
     
     setSalaries(updatedSalaries);
@@ -230,50 +145,28 @@ const EmployeeSalaryManagement = () => {
     toast.success("Salary data updated successfully");
   };
   
-  // Handle salary input change for an employee
-  const handleSalaryChange = (employeeId: string, value: string) => {
-    const amount = value ? parseFloat(value) : 0;
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    const storedAdvances = localStorage.getItem('employeeSalaryAdvances');
+    const storedSalaries = localStorage.getItem('employeeSalaryData');
     
-    setEmployeeSalaries(prev => ({
-      ...prev,
-      [employeeId]: amount
-    }));
-  };
+    if (storedAdvances) {
+      setAdvances(JSON.parse(storedAdvances));
+    }
+    
+    if (storedSalaries) {
+      setSalaries(JSON.parse(storedSalaries));
+    }
+  }, []);
   
-  // Handle month selection change
-  const handleMonthChange = (month: string) => {
-    setSelectedMonth(month);
-    
-    // Update salary inputs for the selected month
-    const monthSalaries: Record<string, number> = {};
-    salaries.forEach(salary => {
-      if (salary.month === month) {
-        monthSalaries[salary.employeeId] = salary.salary;
-      }
-    });
-    
-    setEmployeeSalaries(monthSalaries);
-  };
-  
-  // Filter advances by the selected employee (if any)
+  // Filtering and sorting functions
   const filteredAdvances = selectedEmployee 
     ? advances.filter(a => a.employeeId === selectedEmployee)
     : advances;
   
-  // Sort advances by date in descending order
-  const sortedAdvances = [...filteredAdvances].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  // Filter salaries by the selected employee (if any)
   const filteredSalaries = selectedEmployee 
     ? salaries.filter(s => s.employeeId === selectedEmployee)
     : salaries;
-  
-  // Sort salaries by month in descending order
-  const sortedSalaries = [...filteredSalaries].sort((a, b) => 
-    b.month.localeCompare(a.month)
-  );
   
   return (
     <div className="space-y-6">
@@ -303,30 +196,25 @@ const EmployeeSalaryManagement = () => {
             
             {/* Advances & Transfers Tab */}
             <TabsContent value="advances">
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Record Advance/Transfer</CardTitle>
+                    <CardTitle>Record Advance/Transfer</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="advanceDate">Date</Label>
-                          <div className="flex items-center">
-                            <FaRegCalendarAlt className="mr-2 text-gray-400" />
-                            <Input
-                              id="advanceDate"
-                              type="date"
-                              value={advanceDate}
-                              onChange={(e) => setAdvanceDate(e.target.value)}
-                            />
-                          </div>
+                          <Label>Date</Label>
+                          <Input
+                            type="date"
+                            value={advanceDate}
+                            onChange={(e) => setAdvanceDate(e.target.value)}
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="advanceAmount">Amount</Label>
+                          <Label>Amount</Label>
                           <Input
-                            id="advanceAmount"
                             type="number"
                             placeholder="Enter amount"
                             value={advanceAmount}
@@ -336,12 +224,12 @@ const EmployeeSalaryManagement = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="advanceEmployee">Employee</Label>
+                        <Label>Employee</Label>
                         <Select 
                           value={advanceEmployee} 
                           onValueChange={setAdvanceEmployee}
                         >
-                          <SelectTrigger id="advanceEmployee">
+                          <SelectTrigger>
                             <SelectValue placeholder="Select an employee" />
                           </SelectTrigger>
                           <SelectContent>
@@ -365,7 +253,6 @@ const EmployeeSalaryManagement = () => {
                               value="bank"
                               checked={advanceType === 'bank'}
                               onChange={() => setAdvanceType('bank')}
-                              className="h-4 w-4 text-violet-600 focus:ring-violet-500"
                             />
                             <label htmlFor="typeBank">Bank Transfer</label>
                           </div>
@@ -377,7 +264,6 @@ const EmployeeSalaryManagement = () => {
                               value="cash"
                               checked={advanceType === 'cash'}
                               onChange={() => setAdvanceType('cash')}
-                              className="h-4 w-4 text-violet-600 focus:ring-violet-500"
                             />
                             <label htmlFor="typeCash">Cash Advance</label>
                           </div>
@@ -385,9 +271,8 @@ const EmployeeSalaryManagement = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="advanceComments">Comments</Label>
+                        <Label>Comments</Label>
                         <Textarea
-                          id="advanceComments"
                           placeholder="Optional comments"
                           value={advanceComments}
                           onChange={(e) => setAdvanceComments(e.target.value)}
@@ -406,91 +291,61 @@ const EmployeeSalaryManagement = () => {
                 </Card>
                 
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-lg">Filter by Employee</CardTitle>
+                  <CardHeader>
+                    <CardTitle>Filter by Employee</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <Select 
-                        value={selectedEmployee} 
-                        onValueChange={setSelectedEmployee}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Employees" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Employees</SelectItem>
-                          {employees.map((employee) => (
-                            <SelectItem key={employee.id} value={employee.id}>
-                              {employee.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      {selectedEmployee && (
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setSelectedEmployee("")}
-                          className="w-full"
-                        >
-                          Clear Filter
-                        </Button>
-                      )}
-                    </div>
+                    <Select 
+                      value={selectedEmployee} 
+                      onValueChange={setSelectedEmployee}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Employees" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Employees</SelectItem>
+                        {employees.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </CardContent>
                 </Card>
               </div>
               
+              {/* Advances Table */}
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle className="text-lg">Advance & Transfer History</CardTitle>
+                  <CardTitle>Advance & Transfer History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {sortedAdvances.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Employee</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
-                            <TableHead>Comments</TableHead>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Employee</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Comments</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAdvances.map((advance) => {
+                        const employee = employees.find(e => e.id === advance.employeeId);
+                        return (
+                          <TableRow key={advance.id}>
+                            <TableCell>{advance.date}</TableCell>
+                            <TableCell>{employee?.name || "Unknown"}</TableCell>
+                            <TableCell>{advance.type === 'bank' ? 'Bank' : 'Cash'}</TableCell>
+                            <TableCell className="text-right">₹{advance.amount.toLocaleString()}</TableCell>
+                            <TableCell>{advance.comments || "—"}</TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {sortedAdvances.map((advance) => {
-                            const employee = employees.find(e => e.id === advance.employeeId);
-                            return (
-                              <TableRow key={advance.id}>
-                                <TableCell>
-                                  {format(new Date(advance.date), "MMM d, yyyy")}
-                                </TableCell>
-                                <TableCell>
-                                  {employee?.name || "Unknown Employee"}
-                                </TableCell>
-                                <TableCell>
-                                  {advance.type === 'bank' ? 'Bank Transfer' : 'Cash Advance'}
-                                </TableCell>
-                                <TableCell className="text-right font-medium">
-                                  ₹{advance.amount.toLocaleString()}
-                                </TableCell>
-                                <TableCell>
-                                  {advance.comments || "—"}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <FaMoneyBillWave className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No salary advances or transfers recorded yet.</p>
-                    </div>
-                  )}
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -499,125 +354,98 @@ const EmployeeSalaryManagement = () => {
             <TabsContent value="salaries">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Monthly Salary Update</CardTitle>
+                  <CardTitle>Monthly Salary Update</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="salaryMonth">Select Month</Label>
+                      <Label>Select Month</Label>
                       <Select 
                         value={selectedMonth} 
-                        onValueChange={handleMonthChange}
+                        onValueChange={setSelectedMonth}
                       >
-                        <SelectTrigger id="salaryMonth">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select a month" />
                         </SelectTrigger>
                         <SelectContent>
                           {months.map((month) => (
                             <SelectItem key={month} value={month}>
-                              {formatMonthForDisplay(month)}
+                              {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     
-                    {employees.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="grid gap-4">
-                          {employees.map((employee) => (
-                            <div key={employee.id} className="grid grid-cols-2 gap-4 p-4 border rounded-md">
-                              <div className="font-medium">{employee.name}</div>
-                              <div>
-                                <Input
-                                  type="number"
-                                  placeholder="Enter salary"
-                                  value={employeeSalaries[employee.id] || ""}
-                                  onChange={(e) => handleSalaryChange(employee.id, e.target.value)}
-                                />
-                              </div>
-                            </div>
-                          ))}
+                    <div className="grid gap-4">
+                      {employees.map((employee) => (
+                        <div key={employee.id} className="grid grid-cols-2 gap-4 p-4 border rounded-md">
+                          <div className="font-medium">{employee.name}</div>
+                          <div>
+                            <Input
+                              type="number"
+                              placeholder="Enter salary"
+                              value={employeeSalaries[employee.id] || ""}
+                              onChange={(e) => {
+                                const value = e.target.value ? parseFloat(e.target.value) : 0;
+                                setEmployeeSalaries(prev => ({
+                                  ...prev,
+                                  [employee.id]: value
+                                }));
+                              }}
+                            />
+                          </div>
                         </div>
-                        
-                        <Button 
-                          className="w-full bg-violet-600 hover:bg-violet-700" 
-                          onClick={handleUpdateSalary}
-                        >
-                          Update Salaries
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No employees found. Please add employees first.</p>
-                      </div>
-                    )}
+                      ))}
+                    </div>
+                    
+                    <Button 
+                      className="w-full bg-violet-600 hover:bg-violet-700" 
+                      onClick={handleUpdateSalary}
+                    >
+                      Update Salaries
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
               
+              {/* Salary Records Table */}
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle className="text-lg">Monthly Salary Records</CardTitle>
+                  <CardTitle>Monthly Salary Records</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {sortedSalaries.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Month</TableHead>
-                            <TableHead>Employee</TableHead>
-                            <TableHead className="text-right">Salary</TableHead>
-                            <TableHead className="text-right">Bank Transfers</TableHead>
-                            <TableHead className="text-right">Cash Advances</TableHead>
-                            <TableHead className="text-right">Total Advance</TableHead>
-                            <TableHead className="text-right">Balance</TableHead>
-                            <TableHead className="text-right">Running Balance</TableHead>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Month</TableHead>
+                        <TableHead>Employee</TableHead>
+                        <TableHead className="text-right">Salary</TableHead>
+                        <TableHead className="text-right">Bank Transfers</TableHead>
+                        <TableHead className="text-right">Cash Advances</TableHead>
+                        <TableHead className="text-right">Total Advance</TableHead>
+                        <TableHead className="text-right">Balance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSalaries.map((salary) => {
+                        const employee = employees.find(e => e.id === salary.employeeId);
+                        return (
+                          <TableRow key={salary.id}>
+                            <TableCell>{format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}</TableCell>
+                            <TableCell>{employee?.name || "Unknown"}</TableCell>
+                            <TableCell className="text-right">₹{salary.salary.toLocaleString()}</TableCell>
+                            <TableCell className="text-right">₹{salary.monthlyBankTransfers.toLocaleString()}</TableCell>
+                            <TableCell className="text-right">₹{salary.monthlyCashWithdrawn.toLocaleString()}</TableCell>
+                            <TableCell className="text-right">₹{salary.totalSalaryAdvance.toLocaleString()}</TableCell>
+                            <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                              ₹{salary.balanceCurrent.toLocaleString()}
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {sortedSalaries.map((salary) => {
-                            const employee = employees.find(e => e.id === salary.employeeId);
-                            return (
-                              <TableRow key={salary.id}>
-                                <TableCell>
-                                  {formatMonthForDisplay(salary.month)}
-                                </TableCell>
-                                <TableCell>
-                                  {employee?.name || "Unknown Employee"}
-                                </TableCell>
-                                <TableCell className="text-right font-medium">
-                                  ₹{salary.salary.toLocaleString()}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  ₹{salary.monthlyBankTransfers.toLocaleString()}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  ₹{salary.monthlyCashWithdrawn.toLocaleString()}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  ₹{salary.totalSalaryAdvance.toLocaleString()}
-                                </TableCell>
-                                <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                  ₹{salary.balanceCurrent.toLocaleString()}
-                                </TableCell>
-                                <TableCell className={`text-right font-medium ${salary.balanceTillDate < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                  ₹{salary.balanceTillDate.toLocaleString()}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <FaFileInvoiceDollar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No salary records found.</p>
-                      <p className="mt-2">Update employee salaries to get started.</p>
-                    </div>
-                  )}
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -626,10 +454,10 @@ const EmployeeSalaryManagement = () => {
             <TabsContent value="reports">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Employee Financial Report</CardTitle>
+                  <CardTitle>Employee Financial Report</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Select Employee</Label>
                       <Select 
@@ -649,142 +477,41 @@ const EmployeeSalaryManagement = () => {
                       </Select>
                     </div>
                     
-                    {selectedEmployee ? (
-                      <div className="space-y-6">
-                        {sortedSalaries.length > 0 ? (
-                          <>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <Card>
-                                <CardContent className="pt-6">
-                                  <div className="text-2xl font-bold text-center text-violet-600">
-                                    {(() => {
-                                      const latestSalary = sortedSalaries[0];
-                                      return latestSalary ? `₹${latestSalary.salary.toLocaleString()}` : '₹0';
-                                    })()}
-                                  </div>
-                                  <p className="text-center text-sm text-gray-500 mt-2">Current Monthly Salary</p>
-                                </CardContent>
-                              </Card>
-                              
-                              <Card>
-                                <CardContent className="pt-6">
-                                  <div className="text-2xl font-bold text-center text-violet-600">
-                                    {(() => {
-                                      const latest = sortedSalaries[0];
-                                      return latest ? `₹${latest.totalSalaryAdvance.toLocaleString()}` : '₹0';
-                                    })()}
-                                  </div>
-                                  <p className="text-center text-sm text-gray-500 mt-2">Latest Monthly Advance</p>
-                                </CardContent>
-                              </Card>
-                              
-                              <Card>
-                                <CardContent className="pt-6">
-                                  <div className={`text-2xl font-bold text-center ${
-                                    sortedSalaries[0]?.balanceTillDate < 0 ? 'text-red-600' : 'text-green-600'
-                                  }`}>
-                                    {(() => {
-                                      const latest = sortedSalaries[0];
-                                      return latest ? `₹${latest.balanceTillDate.toLocaleString()}` : '₹0';
-                                    })()}
-                                  </div>
-                                  <p className="text-center text-sm text-gray-500 mt-2">Current Running Balance</p>
-                                </CardContent>
-                              </Card>
-                            </div>
-                            
-                            <div className="overflow-x-auto">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Month</TableHead>
-                                    <TableHead className="text-right">Salary</TableHead>
-                                    <TableHead className="text-right">Bank Transfers</TableHead>
-                                    <TableHead className="text-right">Cash Advances</TableHead>
-                                    <TableHead className="text-right">Total Advance</TableHead>
-                                    <TableHead className="text-right">Monthly Balance</TableHead>
-                                    <TableHead className="text-right">Running Balance</TableHead>
+                    {selectedEmployee && (
+                      <>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Month</TableHead>
+                                  <TableHead className="text-right">Salary</TableHead>
+                                  <TableHead className="text-right">Total Advance</TableHead>
+                                  <TableHead className="text-right">Balance</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {filteredSalaries.map((salary) => (
+                                  <TableRow key={salary.id}>
+                                    <TableCell>
+                                      {format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      ₹{salary.salary.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      ₹{salary.totalSalaryAdvance.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                      ₹{salary.balanceCurrent.toLocaleString()}
+                                    </TableCell>
                                   </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {sortedSalaries.map((salary) => (
-                                    <TableRow key={salary.id}>
-                                      <TableCell>
-                                        {formatMonthForDisplay(salary.month)}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        ₹{salary.salary.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        ₹{salary.monthlyBankTransfers.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        ₹{salary.monthlyCashWithdrawn.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        ₹{salary.totalSalaryAdvance.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                        ₹{salary.balanceCurrent.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell className={`text-right font-medium ${salary.balanceTillDate < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                        ₹{salary.balanceTillDate.toLocaleString()}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                            
-                            <div className="space-y-4">
-                              <h3 className="font-semibold">Recent Advances</h3>
-                              {sortedAdvances.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead className="text-right">Amount</TableHead>
-                                        <TableHead>Comments</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {sortedAdvances.slice(0, 5).map((advance) => (
-                                        <TableRow key={advance.id}>
-                                          <TableCell>
-                                            {format(new Date(advance.date), "MMM d, yyyy")}
-                                          </TableCell>
-                                          <TableCell>
-                                            {advance.type === 'bank' ? 'Bank Transfer' : 'Cash Advance'}
-                                          </TableCell>
-                                          <TableCell className="text-right font-medium">
-                                            ₹{advance.amount.toLocaleString()}
-                                          </TableCell>
-                                          <TableCell>
-                                            {advance.comments || "—"}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                </div>
-                              ) : (
-                                <p className="text-gray-500 italic">No advances recorded for this employee.</p>
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="text-center py-8 text-gray-500">
-                            <p>No salary data found for this employee.</p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <FaUser className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                        <p>Please select an employee to view their financial report.</p>
-                      </div>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </CardContent>
+                        </Card>
+                      </>
                     )}
                   </div>
                 </CardContent>

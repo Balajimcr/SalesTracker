@@ -1,3 +1,4 @@
+
 import { SalesRecord } from "@/types/salesTypes";
 
 // Calculate total employee advances
@@ -12,6 +13,11 @@ export const calculateTotalOtherExpenses = (otherExpenses: SalesRecord['otherExp
 
 // Calculate total shop expenses
 export const calculateTotalExpenses = (record: SalesRecord) => {
+  // Check if record is undefined or doesn't have required properties
+  if (!record || !record.employeeAdvances || !record.otherExpenses) {
+    return 0;
+  }
+  
   const employeeAdvancesTotal = calculateTotalEmployeeAdvances(record.employeeAdvances);
   const otherExpensesTotal = calculateTotalOtherExpenses(record.otherExpenses);
   return employeeAdvancesTotal + (record.cleaningExpenses || 0) + otherExpensesTotal;
@@ -19,6 +25,11 @@ export const calculateTotalExpenses = (record: SalesRecord) => {
 
 // Calculate total from denominations
 export const calculateTotalFromDenominations = (denominations: SalesRecord['denominations']) => {
+  // Handle case when denominations is undefined
+  if (!denominations) {
+    return 0;
+  }
+  
   return (
     (denominations.d500 || 0) * 500 +
     (denominations.d200 || 0) * 200 +
@@ -69,6 +80,11 @@ export const maskLargeDifference = (cashDifference: number) => {
 
 // Perform all calculations for a sales record
 export const calculateDerivedValues = (record: SalesRecord): SalesRecord => {
+  // Handle case when record is undefined
+  if (!record) {
+    return record;
+  }
+  
   const totalExpenses = calculateTotalExpenses(record);
   const totalFromDenominations = calculateTotalFromDenominations(record.denominations);
   const closingCash = calculateClosingCash(totalFromDenominations, record.cashWithdrawn);

@@ -128,7 +128,7 @@ const SalesEntryForm = () => {
             onCashWithdrawnChange={handleCashWithdrawnChange}
           />
           
-          <SalesSummary data={formData} />
+          <SalesSummary record={formData} />
         </div>
       </div>
       

@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
 import SalesDashboard from "./SalesDashboard";
-import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave } from "react-icons/fa";
+import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport } from "react-icons/fa";
 import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
+import DataImportExport from "./DataImportExport";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
@@ -48,6 +49,10 @@ const Dashboard = () => {
               <FaUsers />
               <span>Employees</span>
             </TabsTrigger>
+            <TabsTrigger value="data" className="flex items-center gap-2">
+              <FaFileExport />
+              <span>Import/Export</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="sales">
@@ -79,6 +84,10 @@ const Dashboard = () => {
                 <EmployeeSalaryManagement />
               </TabsContent>
             </Tabs>
+          </TabsContent>
+          
+          <TabsContent value="data">
+            <DataImportExport />
           </TabsContent>
         </Tabs>
       </main>

@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { SalesRecord, emptySalesRecord } from "@/types/salesTypes";
 import { getAllSalesRecords, saveSalesRecord } from "@/services/salesService";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FaCalendarAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { 
@@ -17,6 +18,9 @@ import {
 } from "@/components/ui/pagination";
 import RecordDetails from './RecordDetails';
 import DetailedSummary from './DetailedSummary';
+import SalesBasicInfo from './SalesBasicInfo';
+import ExpensesForm from './ExpensesForm';
+import DenominationCounter from './DenominationCounter';
 
 const SalesDashboard = () => {
   const [salesRecords, setSalesRecords] = useState<SalesRecord[]>([]);
@@ -269,112 +273,7 @@ const SalesDashboard = () => {
   );
 };
 
-const RecordDetails = ({ record }: { record: SalesRecord }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Sales Record Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <DetailItem label="Date" value={format(new Date(record.date), "MMMM d, yyyy")} />
-          <DetailItem label="Opening Cash" value={`₹${record.openingCash.toLocaleString()}`} />
-          <DetailItem label="Total POS Sales" value={`₹${record.totalSalesPOS.toLocaleString()}`} />
-          <DetailItem label="Paytm Sales" value={`₹${record.paytmSales.toLocaleString()}`} />
-          
-          <div className="pt-4 border-t">
-            <h3 className="font-medium mb-2">Employee Advances</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <DetailItem label="Employee 1" value={`₹${record.employeeAdvances.employee1.toLocaleString()}`} />
-              <DetailItem label="Employee 2" value={`₹${record.employeeAdvances.employee2.toLocaleString()}`} />
-              <DetailItem label="Employee 3" value={`₹${record.employeeAdvances.employee3.toLocaleString()}`} />
-              <DetailItem label="Employee 4" value={`₹${record.employeeAdvances.employee4.toLocaleString()}`} />
-            </div>
-          </div>
-          
-          <div className="pt-4 border-t">
-            <h3 className="font-medium mb-2">Expenses</h3>
-            <DetailItem label="Cleaning Expenses" value={`₹${record.cleaningExpenses.toLocaleString()}`} />
-            {record.otherExpenses.name1 && (
-              <DetailItem 
-                label={record.otherExpenses.name1} 
-                value={`₹${record.otherExpenses.amount1.toLocaleString()}`} 
-              />
-            )}
-            {record.otherExpenses.name2 && (
-              <DetailItem 
-                label={record.otherExpenses.name2} 
-                value={`₹${record.otherExpenses.amount2.toLocaleString()}`} 
-              />
-            )}
-          </div>
-          
-          <div className="pt-4 border-t">
-            <DetailItem label="Cash Withdrawn" value={`₹${record.cashWithdrawn.toLocaleString()}`} />
-            <DetailItem label="Total Expenses" value={`₹${record.totalExpenses?.toLocaleString() || '0'}`} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const DetailedSummary = ({ record }: { record: SalesRecord }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Financial Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <h3 className="font-medium col-span-2 border-b pb-1">Cash Flow Breakdown</h3>
-            <DetailItem label="Opening Balance" value={`₹${record.openingCash.toLocaleString()}`} />
-            <DetailItem label="Total POS Sales" value={`₹${record.totalSalesPOS.toLocaleString()}`} />
-            <DetailItem label="Paytm Sales" value={`₹${(record.paytmSales).toLocaleString()}`} />
-            <DetailItem label="Cash Sales" value={`₹${(record.totalCashSales || 0).toLocaleString()}`} />
-            <DetailItem label="Total Expenses" value={`₹${(record.totalExpenses || 0).toLocaleString()}`} />
-            <DetailItem label="Cash Withdrawn" value={`₹${record.cashWithdrawn.toLocaleString()}`} />
-          </div>
-          
-          <div className="pt-4 border-t">
-            <h3 className="font-medium mb-2">Final Calculations</h3>
-            <div className="space-y-2">
-              <DetailItem 
-                label="Expected Cash" 
-                value={`₹${(record.totalCash || 0).toLocaleString()}`} 
-                className="text-blue-600"
-              />
-              <DetailItem 
-                label="Actual Cash (Denominations)" 
-                value={`₹${(record.totalFromDenominations || 0).toLocaleString()}`} 
-                className="text-blue-600"
-              />
-              <DetailItem 
-                label="Closing Cash" 
-                value={`₹${(record.closingCash || 0).toLocaleString()}`} 
-                className="font-bold text-lg"
-              />
-              <DetailItem 
-                label="Cash Difference" 
-                value={`₹${(record.cashDifference || 0).toLocaleString()}`} 
-                className={`font-bold text-lg ${(record.cashDifference || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}
-              />
-            </div>
-          </div>
-          
-          {Math.abs(record.cashDifference || 0) > 100 && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-              <p className="text-amber-700 font-medium">Significant cash difference detected!</p>
-              <p className="text-sm text-amber-600">Please verify your calculations and denominatio counts.</p>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
+// DetailItem component used in both RecordDetails and DetailedSummary
 const DetailItem = ({ 
   label, 
   value,

@@ -1,4 +1,3 @@
-
 // CSV Utility functions for importing and exporting data
 
 import { toast } from "@/components/ui/sonner";
@@ -291,56 +290,206 @@ export const importSalesDataFromCSV = (csvFile: File): Promise<void> => {
         const headerRow = lines[0];
         const dataRows = lines.slice(1);
         
-        // Parse header to get indexes
-        const headers = headerRow.split(',');
-        const getIndex = (fieldName: string) => headers.findIndex(h => h.trim() === fieldName);
+        // Parse header to get indexes for each field
+        const headers = headerRow.split(',').map(h => h.trim());
         
-        // Get indexes for each field
-        const dateIndex = getIndex('Date');
-        const openingCashIndex = getIndex('Opening Cash');
-        const totalSalesPOSIndex = getIndex('Total POS Sales');
-        const paytmSalesIndex = getIndex('Paytm Sales');
-        // ... get indexes for other fields
+        // Create a helper function to find the index of a header
+        const getIndex = (fieldName: string): number => {
+          // Try exact match first
+          let index = headers.findIndex(h => h === fieldName);
+          
+          // If not found, try case-insensitive match
+          if (index === -1) {
+            index = headers.findIndex(h => h.toLowerCase() === fieldName.toLowerCase());
+          }
+          
+          // If still not found, try with spaces removed
+          if (index === -1) {
+            const normalizedName = fieldName.replace(/\s+/g, '').toLowerCase();
+            index = headers.findIndex(h => h.replace(/\s+/g, '').toLowerCase() === normalizedName);
+          }
+          
+          return index;
+        };
+        
+        // Map common headers to our field names
+        const dateIndex = getIndex('Date') !== -1 ? getIndex('Date') : getIndex('date');
+        const openingCashIndex = getIndex('Opening Cash') !== -1 ? getIndex('Opening Cash') : getIndex('openingCash');
+        const totalSalesPOSIndex = getIndex('Total POS Sales') !== -1 ? getIndex('Total POS Sales') : getIndex('totalSalesPOS');
+        const paytmSalesIndex = getIndex('Paytm Sales') !== -1 ? getIndex('Paytm Sales') : getIndex('paytmSales');
         
         // Parse each row
-        const salesRecords: SalesRecord[] = dataRows
-          .filter(row => row.trim() !== '')
-          .map(row => {
-            const values = row.split(',');
+        const salesRecords: SalesRecord[] = [];
+        
+        for (let i = 0; i < dataRows.length; i++) {
+          const row = dataRows[i].trim();
+          if (!row) continue; // Skip empty rows
+          
+          // Split the row into values
+          // Handle values that might contain commas within quotes
+          const values: string[] = [];
+          let inQuotes = false;
+          let currentValue = '';
+          
+          for (let j = 0; j < row.length; j++) {
+            const char = row[j];
             
-            const record: SalesRecord = {
-              date: values[dateIndex] || new Date().toISOString().split('T')[0],
-              openingCash: parseFloat(values[openingCashIndex]) || 0,
-              totalSalesPOS: parseFloat(values[totalSalesPOSIndex]) || 0,
-              paytmSales: parseFloat(values[paytmSalesIndex]) || 0,
-              employeeAdvances: {
-                employee1: parseFloat(values[getIndex('Employee1 Advance')]) || 0,
-                employee2: parseFloat(values[getIndex('Employee2 Advance')]) || 0,
-                employee3: parseFloat(values[getIndex('Employee3 Advance')]) || 0,
-                employee4: parseFloat(values[getIndex('Employee4 Advance')]) || 0
-              },
-              cleaningExpenses: parseFloat(values[getIndex('Cleaning Expenses')]) || 0,
-              otherExpenses: {
-                name1: values[getIndex('Other Expense 1 Name')] || '',
-                amount1: parseFloat(values[getIndex('Other Expense 1 Amount')]) || 0,
-                name2: values[getIndex('Other Expense 2 Name')] || '',
-                amount2: parseFloat(values[getIndex('Other Expense 2 Amount')]) || 0
-              },
-              denominations: {
-                d500: parseInt(values[getIndex('Rs.500 Count')]) || 0,
-                d200: parseInt(values[getIndex('Rs.200 Count')]) || 0,
-                d100: parseInt(values[getIndex('Rs.100 Count')]) || 0,
-                d50: parseInt(values[getIndex('Rs.50 Count')]) || 0,
-                d20: parseInt(values[getIndex('Rs.20 Count')]) || 0,
-                d10: parseInt(values[getIndex('Rs.10 Count')]) || 0,
-                d5: parseInt(values[getIndex('Rs.5 Count')]) || 0
-              },
-              cashWithdrawn: parseFloat(values[getIndex('Cash Withdrawn')]) || 0
-            };
-            
-            // Calculate derived values
-            return calculateDerivedValues(record);
-          });
+            if (char === '"' && (j === 0 || row[j-1] !== '\\')) {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              values.push(currentValue);
+              currentValue = '';
+            } else {
+              currentValue += char;
+            }
+          }
+          values.push(currentValue); // Add the last value
+          
+          // Create a record with default values
+          const record: SalesRecord = {
+            date: new Date().toISOString().split('T')[0],
+            openingCash: 0,
+            totalSalesPOS: 0,
+            paytmSales: 0,
+            employeeAdvances: {
+              employee1: 0,
+              employee2: 0,
+              employee3: 0,
+              employee4: 0
+            },
+            cleaningExpenses: 0,
+            otherExpenses: {
+              name1: '',
+              amount1: 0,
+              name2: '',
+              amount2: 0
+            },
+            denominations: {
+              d500: 0,
+              d200: 0,
+              d100: 0,
+              d50: 0,
+              d20: 0,
+              d10: 0,
+              d5: 0
+            },
+            cashWithdrawn: 0
+          };
+          
+          // Set values based on the CSV columns
+          if (dateIndex !== -1 && values[dateIndex]) {
+            record.date = values[dateIndex].trim();
+          }
+          
+          if (openingCashIndex !== -1 && values[openingCashIndex]) {
+            record.openingCash = parseFloat(values[openingCashIndex]) || 0;
+          }
+          
+          if (totalSalesPOSIndex !== -1 && values[totalSalesPOSIndex]) {
+            record.totalSalesPOS = parseFloat(values[totalSalesPOSIndex]) || 0;
+          }
+          
+          if (paytmSalesIndex !== -1 && values[paytmSalesIndex]) {
+            record.paytmSales = parseFloat(values[paytmSalesIndex]) || 0;
+          }
+          
+          // Employee advances
+          const emp1Index = getIndex('Employee1 Advance');
+          const emp2Index = getIndex('Employee2 Advance');
+          const emp3Index = getIndex('Employee3 Advance');
+          const emp4Index = getIndex('Employee4 Advance');
+          
+          if (emp1Index !== -1 && values[emp1Index]) {
+            record.employeeAdvances.employee1 = parseFloat(values[emp1Index]) || 0;
+          }
+          
+          if (emp2Index !== -1 && values[emp2Index]) {
+            record.employeeAdvances.employee2 = parseFloat(values[emp2Index]) || 0;
+          }
+          
+          if (emp3Index !== -1 && values[emp3Index]) {
+            record.employeeAdvances.employee3 = parseFloat(values[emp3Index]) || 0;
+          }
+          
+          if (emp4Index !== -1 && values[emp4Index]) {
+            record.employeeAdvances.employee4 = parseFloat(values[emp4Index]) || 0;
+          }
+          
+          // Cleaning expenses
+          const cleaningIndex = getIndex('Cleaning Expenses');
+          if (cleaningIndex !== -1 && values[cleaningIndex]) {
+            record.cleaningExpenses = parseFloat(values[cleaningIndex]) || 0;
+          }
+          
+          // Other expenses
+          const otherExp1NameIndex = getIndex('Other Expense 1 Name');
+          const otherExp1AmountIndex = getIndex('Other Expense 1 Amount');
+          const otherExp2NameIndex = getIndex('Other Expense 2 Name');
+          const otherExp2AmountIndex = getIndex('Other Expense 2 Amount');
+          
+          if (otherExp1NameIndex !== -1 && values[otherExp1NameIndex]) {
+            record.otherExpenses.name1 = values[otherExp1NameIndex];
+          }
+          
+          if (otherExp1AmountIndex !== -1 && values[otherExp1AmountIndex]) {
+            record.otherExpenses.amount1 = parseFloat(values[otherExp1AmountIndex]) || 0;
+          }
+          
+          if (otherExp2NameIndex !== -1 && values[otherExp2NameIndex]) {
+            record.otherExpenses.name2 = values[otherExp2NameIndex];
+          }
+          
+          if (otherExp2AmountIndex !== -1 && values[otherExp2AmountIndex]) {
+            record.otherExpenses.amount2 = parseFloat(values[otherExp2AmountIndex]) || 0;
+          }
+          
+          // Denominations
+          const d500Index = getIndex('Rs.500 Count');
+          const d200Index = getIndex('Rs.200 Count');
+          const d100Index = getIndex('Rs.100 Count');
+          const d50Index = getIndex('Rs.50 Count');
+          const d20Index = getIndex('Rs.20 Count');
+          const d10Index = getIndex('Rs.10 Count');
+          const d5Index = getIndex('Rs.5 Count');
+          
+          if (d500Index !== -1 && values[d500Index]) {
+            record.denominations.d500 = parseInt(values[d500Index]) || 0;
+          }
+          
+          if (d200Index !== -1 && values[d200Index]) {
+            record.denominations.d200 = parseInt(values[d200Index]) || 0;
+          }
+          
+          if (d100Index !== -1 && values[d100Index]) {
+            record.denominations.d100 = parseInt(values[d100Index]) || 0;
+          }
+          
+          if (d50Index !== -1 && values[d50Index]) {
+            record.denominations.d50 = parseInt(values[d50Index]) || 0;
+          }
+          
+          if (d20Index !== -1 && values[d20Index]) {
+            record.denominations.d20 = parseInt(values[d20Index]) || 0;
+          }
+          
+          if (d10Index !== -1 && values[d10Index]) {
+            record.denominations.d10 = parseInt(values[d10Index]) || 0;
+          }
+          
+          if (d5Index !== -1 && values[d5Index]) {
+            record.denominations.d5 = parseInt(values[d5Index]) || 0;
+          }
+          
+          // Cash withdrawn
+          const cashWithdrawnIndex = getIndex('Cash Withdrawn');
+          if (cashWithdrawnIndex !== -1 && values[cashWithdrawnIndex]) {
+            record.cashWithdrawn = parseFloat(values[cashWithdrawnIndex]) || 0;
+          }
+          
+          // Calculate derived values
+          const processedRecord = calculateDerivedValues(record);
+          salesRecords.push(processedRecord);
+        }
         
         // Get existing sales records
         const STORAGE_KEY = 'sales_records';

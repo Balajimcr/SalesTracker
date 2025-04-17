@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { SalesRecord, emptySalesRecord } from "@/types/salesTypes";
 import { getAllSalesRecords, saveSalesRecord } from "@/services/salesService";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -48,9 +47,16 @@ const SalesDashboard = () => {
     setSalesRecords(records);
     
     if (records.length > 0) {
-      const sortedRecords = [...records].sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      const sortedRecords = [...records].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        if (isValid(dateA) && isValid(dateB)) {
+          return dateB.getTime() - dateA.getTime();
+        }
+        if (!isValid(dateA)) return 1;
+        if (!isValid(dateB)) return -1;
+        return 0;
+      });
       setSelectedRecord(sortedRecords[0]);
       setCurrentIndex(0);
     }
@@ -144,15 +150,26 @@ const SalesDashboard = () => {
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return format(date, "dd-MMM-yy");
+      if (isValid(date)) {
+        return format(date, "dd-MMM-yy");
+      }
+      return "Invalid date";
     } catch (error) {
-      return dateString;
+      console.error("Date formatting error:", error, "for date:", dateString);
+      return "Invalid date";
     }
   };
 
-  const sortedRecords = [...salesRecords].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const sortedRecords = [...salesRecords].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    if (isValid(dateA) && isValid(dateB)) {
+      return dateB.getTime() - dateA.getTime();
+    }
+    if (!isValid(dateA)) return 1;
+    if (!isValid(dateB)) return -1;
+    return 0;
+  });
 
   if (salesRecords.length === 0) {
     return (
@@ -183,11 +200,18 @@ const SalesDashboard = () => {
                   <SelectValue placeholder="Select a date" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortedRecords.map(record => (
-                    <SelectItem key={record.date} value={record.date}>
-                      {format(new Date(record.date), "MMMM d, yyyy")}
-                    </SelectItem>
-                  ))}
+                  {sortedRecords.map(record => {
+                    const date = new Date(record.date);
+                    return isValid(date) ? (
+                      <SelectItem key={record.date} value={record.date}>
+                        {format(date, "MMMM d, yyyy")}
+                      </SelectItem>
+                    ) : (
+                      <SelectItem key={record.date} value={record.date}>
+                        Invalid date
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               {!isEditing && (
@@ -221,7 +245,6 @@ const SalesDashboard = () => {
         <CardContent>
           {selectedRecord && (
             <div className="space-y-6">
-              {/* Index-based Navigation */}
               <div className="w-full flex justify-center my-4">
                 <Pagination>
                   <PaginationContent>
@@ -249,7 +272,6 @@ const SalesDashboard = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Show either the editing form or the static display */}
                 {isEditing ? (
                   <>
                     <SalesBasicInfo 
@@ -288,7 +310,6 @@ const SalesDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Full Records Table Section */}
       <Card className="w-full">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -389,7 +410,6 @@ const SalesDashboard = () => {
   );
 };
 
-// DetailItem component used in both RecordDetails and DetailedSummary
 const DetailItem = ({ 
   label, 
   value,

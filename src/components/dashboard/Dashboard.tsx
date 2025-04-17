@@ -15,23 +15,39 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <FaShoppingBag className="text-3xl text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Shop Sales Insights</h1>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-shop-primary to-shop-secondary p-3 rounded-xl shadow-lg">
+              <FaShoppingBag className="text-3xl text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 bg-gradient-to-r from-shop-primary to-shop-accent bg-clip-text text-transparent">
+                RetailPulse
+              </h1>
+              <p className="text-sm md:text-base font-medium text-shop-secondary">
+                Smart Retail Analytics & Management
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-gray-500">
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+          <div className="flex items-center justify-start md:justify-end gap-2">
+            <div className="px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
+              <span className="text-xs font-medium text-blue-700">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
           </div>
         </div>
-        <p className="text-gray-600 max-w-2xl">
-          Track and manage your daily shop sales, expenses, and cash flow with this easy-to-use dashboard.
-        </p>
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100 mb-6">
+          <p className="text-gray-700 md:text-lg max-w-3xl">
+            Streamline your retail operations with powerful insights to track sales, 
+            manage expenses, and optimize your cash flow—all in one intuitive dashboard.
+          </p>
+        </div>
       </header>
 
       <main>

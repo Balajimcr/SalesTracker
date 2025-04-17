@@ -87,8 +87,8 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="openingCash"
               type="number"
-              min="0"  // Added min value
-              step="100"
+              min="0"
+              step="any"
               value={data.openingCash || ''}
               onChange={(e) => handleChange('openingCash', e.target.value)}
             />
@@ -102,8 +102,8 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="totalSalesPOS"
               type="number"
-              min="0"  // Added min value
-              step="100"
+              min="0"
+              step="any"
               value={data.totalSalesPOS || ''}
               onChange={(e) => handleChange('totalSalesPOS', e.target.value)}
             />
@@ -117,8 +117,8 @@ const SalesBasicInfo = ({ data, onChange }: SalesBasicInfoProps) => {
             <Input
               id="paytmSales"
               type="number"
-              min="0"  // Added min value
-              step="100"
+              min="0"
+              step="any"
               value={data.paytmSales || ''}
               onChange={(e) => handleChange('paytmSales', e.target.value)}
             />

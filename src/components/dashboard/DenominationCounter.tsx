@@ -63,8 +63,8 @@ const DenominationCounter = ({
               <Input
                 id={key}
                 type="number"
-                min="0"  // Added min value
-                step="1"
+                min="0"
+                step="any"
                 value={denominations[key] || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full text-left"
@@ -93,8 +93,8 @@ const DenominationCounter = ({
               <Input
                 id="cashWithdrawn"
                 type="number"
-                min="0"  // Added min value
-                step="1"
+                min="0"
+                step="any"
                 value={cashWithdrawn || ''}
                 onChange={(e) => handleCashWithdrawnChange(e.target.value)}
               />

@@ -73,6 +73,11 @@ const SalesEntryForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent browser validation
+    const form = e.target as HTMLFormElement;
+    const wasValidationEnabled = form.noValidate;
+    form.noValidate = true;
+    
     // Save the record - accept any value entered
     try {
       saveSalesRecord(formData);
@@ -82,6 +87,9 @@ const SalesEntryForm = () => {
       toast.error("Failed to save sales record. Please try again.");
       console.error("Error saving record:", error);
     }
+    
+    // Restore previous validation state
+    form.noValidate = wasValidationEnabled;
   };
   
   // Handle reset
@@ -97,7 +105,7 @@ const SalesEntryForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           <SalesBasicInfo 

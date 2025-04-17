@@ -17,7 +17,8 @@ import {
   FaPiggyBank, 
   FaFileInvoiceDollar, 
   FaUserPlus, 
-  FaUserMinus 
+  FaUserMinus,
+  FaFilter
 } from "react-icons/fa";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Employee } from './EmployeeManagement';
@@ -65,6 +66,9 @@ const EmployeeSalaryManagement = () => {
   const [salaries, setSalaries] = useState<EmployeeSalary[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, number>>({});
+  
+  // New state for detailed employee reports
+  const [reportFilterMonth, setReportFilterMonth] = useState<string>("all");
   
   // Generate last 12 months for dropdown
   const months = Array.from({ length: 12 }, (_, i) => 
@@ -221,6 +225,42 @@ const EmployeeSalaryManagement = () => {
   const filteredSalaries = selectedEmployee 
     ? salaries.filter(s => s.employeeId === selectedEmployee)
     : salaries;
+  
+  // Filter detailed report data
+  const getFilteredReportData = () => {
+    if (!selectedEmployee) return [];
+    
+    let filteredAdvances = advances.filter(a => a.employeeId === selectedEmployee);
+    
+    // Apply month filter if not set to "all"
+    if (reportFilterMonth !== "all") {
+      filteredAdvances = filteredAdvances.filter(a => a.date.substring(0, 7) === reportFilterMonth);
+    }
+    
+    // Sort by date (newest first)
+    return filteredAdvances.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+  
+  // Calculate financial summary
+  const getFinancialSummary = () => {
+    if (!selectedEmployee) return { totalSalary: 0, totalBank: 0, totalCash: 0, netBalance: 0 };
+    
+    const employeeSalaryData = salaries.filter(s => s.employeeId === selectedEmployee);
+    
+    let filteredSalaryData = employeeSalaryData;
+    
+    // Apply month filter if not set to "all"
+    if (reportFilterMonth !== "all") {
+      filteredSalaryData = employeeSalaryData.filter(s => s.month === reportFilterMonth);
+    }
+    
+    const totalSalary = filteredSalaryData.reduce((sum, s) => sum + s.salary, 0);
+    const totalBank = filteredSalaryData.reduce((sum, s) => sum + s.monthlyBankTransfers, 0);
+    const totalCash = filteredSalaryData.reduce((sum, s) => sum + s.monthlyCashWithdrawn, 0);
+    const netBalance = (totalBank + totalCash) - totalSalary;
+    
+    return { totalSalary, totalBank, totalCash, netBalance };
+  };
   
   // When employees are updated, update the dropdown selection if needed
   useEffect(() => {
@@ -607,74 +647,188 @@ const EmployeeSalaryManagement = () => {
               </Card>
             </TabsContent>
             
-            {/* Employee Reports Tab */}
+            {/* Employee Reports Tab - Enhanced with detailed information */}
             <TabsContent value="reports">
               <Card>
                 <CardHeader>
                   <CardTitle>Employee Financial Report</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Select Employee</Label>
-                      <Select 
-                        value={selectedEmployee} 
-                        onValueChange={setSelectedEmployee}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an employee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {employees.map((employee) => (
-                            <SelectItem key={employee.id} value={employee.id}>
-                              {employee.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Select Employee</Label>
+                        <Select 
+                          value={selectedEmployee} 
+                          onValueChange={setSelectedEmployee}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an employee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employees.map((employee) => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Filter by Month</Label>
+                        <Select 
+                          value={reportFilterMonth} 
+                          onValueChange={setReportFilterMonth}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Months" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Months</SelectItem>
+                            {months.map((month) => (
+                              <SelectItem key={month} value={month}>
+                                {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     
                     {selectedEmployee ? (
-                      filteredSalaries.length > 0 ? (
-                        <Card>
-                          <CardContent className="pt-6">
+                      <>
+                        {/* Financial Summary Card */}
+                        <Card className="bg-gray-50 border">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Financial Summary</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="bg-white p-4 rounded-md shadow-sm border">
+                                <div className="text-sm text-gray-500">Total Salary</div>
+                                <div className="text-xl font-bold mt-1">
+                                  ₹{getFinancialSummary().totalSalary.toLocaleString()}
+                                </div>
+                              </div>
+                              <div className="bg-white p-4 rounded-md shadow-sm border">
+                                <div className="text-sm text-gray-500">Bank Transfers</div>
+                                <div className="text-xl font-bold mt-1">
+                                  ₹{getFinancialSummary().totalBank.toLocaleString()}
+                                </div>
+                              </div>
+                              <div className="bg-white p-4 rounded-md shadow-sm border">
+                                <div className="text-sm text-gray-500">Cash Advances</div>
+                                <div className="text-xl font-bold mt-1">
+                                  ₹{getFinancialSummary().totalCash.toLocaleString()}
+                                </div>
+                              </div>
+                              <div className="bg-white p-4 rounded-md shadow-sm border">
+                                <div className="text-sm text-gray-500">Net Balance</div>
+                                <div className={`text-xl font-bold mt-1 ${
+                                  getFinancialSummary().netBalance < 0 ? 'text-red-600' : 'text-green-600'
+                                }`}>
+                                  ₹{getFinancialSummary().netBalance.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Detailed Transaction History */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-4 flex items-center">
+                            <FaFilter className="mr-2 text-gray-500" />
+                            Detailed Transaction History
+                            {reportFilterMonth !== "all" && (
+                              <span className="ml-2 text-sm font-normal text-gray-500">
+                                ({format(parse(reportFilterMonth, "yyyy-MM", new Date()), "MMMM yyyy")})
+                              </span>
+                            )}
+                          </h3>
+                          
+                          {getFilteredReportData().length > 0 ? (
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Date</TableHead>
+                                  <TableHead>Type</TableHead>
+                                  <TableHead className="text-right">Amount</TableHead>
+                                  <TableHead>Comments</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {getFilteredReportData().map((transaction) => (
+                                  <TableRow key={transaction.id}>
+                                    <TableCell>{format(new Date(transaction.date), "dd MMM yyyy")}</TableCell>
+                                    <TableCell>
+                                      <span className={`px-2 py-1 rounded-full text-xs ${
+                                        transaction.type === 'bank' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                                      }`}>
+                                        {transaction.type === 'bank' ? 'Bank Transfer' : 'Cash Advance'}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">
+                                      ₹{transaction.amount.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell>{transaction.comments || "—"}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-md border">
+                              <p>No transaction records found for this employee.</p>
+                              {reportFilterMonth !== "all" && (
+                                <p className="mt-2 text-sm">Try selecting a different month or "All Months".</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Monthly Performance Chart - Simple table format */}
+                        <div className="mt-6">
+                          <h3 className="text-lg font-medium mb-4">Monthly Performance</h3>
+                          {filteredSalaries.length > 0 ? (
                             <Table>
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>Month</TableHead>
                                   <TableHead className="text-right">Salary</TableHead>
-                                  <TableHead className="text-right">Total Advance</TableHead>
+                                  <TableHead className="text-right">Total Advances</TableHead>
                                   <TableHead className="text-right">Balance</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {filteredSalaries.map((salary) => (
-                                  <TableRow key={salary.id}>
-                                    <TableCell>
-                                      {format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      ₹{salary.salary.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      ₹{salary.totalSalaryAdvance.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                      ₹{salary.balanceCurrent.toLocaleString()}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                                {filteredSalaries
+                                  .sort((a, b) => new Date(b.month).getTime() - new Date(a.month).getTime())
+                                  .map((salary) => (
+                                    <TableRow key={salary.id}>
+                                      <TableCell className="font-medium">
+                                        {format(parse(salary.month, "yyyy-MM", new Date()), "MMMM yyyy")}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        ₹{salary.salary.toLocaleString()}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        ₹{salary.totalSalaryAdvance.toLocaleString()}
+                                      </TableCell>
+                                      <TableCell className={`text-right ${salary.balanceCurrent < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                        ₹{salary.balanceCurrent.toLocaleString()}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
                               </TableBody>
                             </Table>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <p>No salary records found for this employee.</p>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-md border">
+                              <p>No salary records found for this employee.</p>
+                            </div>
+                          )}
                         </div>
-                      )
+                      </>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-md border">
                         <p>Please select an employee to view their financial report.</p>
                       </div>
                     )}

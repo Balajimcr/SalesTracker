@@ -5,8 +5,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FaChartLine, FaClipboard, FaUsers, FaFileInvoiceDollar } from "react-icons/fa";
 
 const Index = () => {
+  // Mock user data - in a real app this would come from authentication
+  const userData = {
+    name: "John",
+    role: "Store Manager"
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+      <div className="absolute top-4 right-6 flex items-center gap-3 py-2 px-4 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-blue-100">
+        <div className="flex flex-col items-end">
+          <p className="text-sm font-medium text-gray-800">Welcome, {userData.name}</p>
+          <p className="text-xs text-gray-500">{userData.role}</p>
+        </div>
+        <div className="h-8 w-8 rounded-full bg-shop-primary text-white flex items-center justify-center text-sm font-medium">
+          {userData.name.charAt(0)}
+        </div>
+      </div>
+      
       <Dashboard />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

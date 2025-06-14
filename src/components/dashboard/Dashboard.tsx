@@ -1,16 +1,24 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
 import SalesDashboard from "./SalesDashboard";
-import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport } from "react-icons/fa";
+import StoreManagement from "./StoreManagement";
+import StoreSelector from "./StoreSelector";
+import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport, FaStore } from "react-icons/fa";
 import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
 import DataImportExport from "./DataImportExport";
+import { initializeDefaultStore } from "@/services/storeService";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
   const [employeeActiveTab, setEmployeeActiveTab] = useState("management");
+  
+  useEffect(() => {
+    // Initialize default store if none exists
+    initializeDefaultStore();
+  }, []);
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -29,7 +37,8 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-start md:justify-end gap-2">
+          <div className="flex items-center justify-start md:justify-end gap-4">
+            <StoreSelector />
             <div className="px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
               <span className="text-xs font-medium text-blue-700">
                 {new Date().toLocaleDateString('en-US', { 
@@ -61,6 +70,10 @@ const Dashboard = () => {
               <FaChartLine />
               <span>Sales Dashboard</span>
             </TabsTrigger>
+            <TabsTrigger value="stores" className="flex items-center gap-2">
+              <FaStore />
+              <span>Stores</span>
+            </TabsTrigger>
             <TabsTrigger value="employees" className="flex items-center gap-2">
               <FaUsers />
               <span>Employees</span>
@@ -77,6 +90,10 @@ const Dashboard = () => {
           
           <TabsContent value="dashboard">
             <SalesDashboard />
+          </TabsContent>
+          
+          <TabsContent value="stores">
+            <StoreManagement />
           </TabsContent>
           
           <TabsContent value="employees">

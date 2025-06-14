@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SalesRecord, emptySalesRecord } from "@/types/salesTypes";
-import { getAllSalesRecords, saveSalesRecord } from "@/services/salesService";
+import { getSalesRecordsForActiveStore } from "@/services/salesService";
 import { format, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,7 +43,7 @@ const SalesDashboard = () => {
   }, []);
 
   const loadSalesRecords = () => {
-    const records = getAllSalesRecords();
+    const records = getSalesRecordsForActiveStore(); // Use store-specific records
     setSalesRecords(records);
     
     if (records.length > 0) {
@@ -176,7 +176,7 @@ const SalesDashboard = () => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle>Sales Dashboard</CardTitle>
-          <CardDescription>No sales records found. Add some sales records first.</CardDescription>
+          <CardDescription>No sales records found for the active store. Add some sales records first.</CardDescription>
         </CardHeader>
       </Card>
     );

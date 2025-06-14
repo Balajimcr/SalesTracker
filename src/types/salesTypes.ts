@@ -1,6 +1,7 @@
 
 export interface SalesRecord {
   date: string;
+  storeId?: string; // Add store ID to track which store this record belongs to
   openingCash: number;
   totalSalesPOS: number;
   paytmSales: number;

@@ -1,6 +1,7 @@
 
 import { SalesRecord } from "@/types/salesTypes";
 import { calculateDerivedValues } from "@/utils/salesCalculations";
+import { getActiveStoreId } from "./storeService";
 
 const STORAGE_KEY = 'sales_records';
 
@@ -12,9 +13,8 @@ export const recordsToCSV = (records: SalesRecord[]): string => {
   const processedRecords = records.map(record => calculateDerivedValues(record));
   
   // Create headers from first record
-  const firstRecord = processedRecords[0];
   const headers = [
-    'Date', 'Opening Cash', 'Total POS Sales', 'Paytm Sales', 
+    'Date', 'Store ID', 'Opening Cash', 'Total POS Sales', 'Paytm Sales', 
     'Employee1 Advance', 'Employee2 Advance', 'Employee3 Advance', 'Employee4 Advance',
     'Cleaning Expenses', 'Other Expense 1 Name', 'Other Expense 1 Amount',
     'Other Expense 2 Name', 'Other Expense 2 Amount', 'Rs.500 Count', 'Rs.200 Count',
@@ -27,6 +27,7 @@ export const recordsToCSV = (records: SalesRecord[]): string => {
   const rows = processedRecords.map(record => {
     return [
       record.date,
+      record.storeId || '',
       record.openingCash,
       record.totalSalesPOS,
       record.paytmSales,
@@ -61,8 +62,11 @@ export const recordsToCSV = (records: SalesRecord[]): string => {
 
 // Save sales record
 export const saveSalesRecord = (record: SalesRecord): void => {
-  // Process record to calculate derived values
-  const processedRecord = calculateDerivedValues(record);
+  // Process record to calculate derived values and add store ID
+  const processedRecord = calculateDerivedValues({
+    ...record,
+    storeId: record.storeId || getActiveStoreId() || undefined
+  });
   
   // Get existing records
   const existingRecordsJSON = localStorage.getItem(STORAGE_KEY);
@@ -81,9 +85,24 @@ export const getAllSalesRecords = (): SalesRecord[] => {
   return recordsJSON ? JSON.parse(recordsJSON) : [];
 };
 
+// Get sales records for active store
+export const getSalesRecordsForActiveStore = (): SalesRecord[] => {
+  const activeStoreId = getActiveStoreId();
+  if (!activeStoreId) return [];
+  
+  const allRecords = getAllSalesRecords();
+  return allRecords.filter(record => record.storeId === activeStoreId);
+};
+
+// Get sales records for specific store
+export const getSalesRecordsForStore = (storeId: string): SalesRecord[] => {
+  const allRecords = getAllSalesRecords();
+  return allRecords.filter(record => record.storeId === storeId);
+};
+
 // Download records as CSV
 export const downloadRecordsAsCSV = (): void => {
-  const records = getAllSalesRecords();
+  const records = getSalesRecordsForActiveStore();
   const csv = recordsToCSV(records);
   
   // Create download link

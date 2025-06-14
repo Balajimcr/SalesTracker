@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { SalesRecord, emptySalesRecord } from "@/types/salesTypes";
-import { getSalesRecordsForActiveStore } from "@/services/salesService";
+import { getSalesRecordsForActiveStore, saveSalesRecord } from "@/services/salesService";
 import { format, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FaUserFriends, FaBroom, FaReceipt } from "react-icons/fa";
 import { calculateTotalExpenses } from "@/utils/salesCalculations";
 import { Employee } from "./EmployeeManagement";
+import { getActiveStore } from "@/services/storeService";
+import { getEmployeesByStore } from "@/services/employeeService";
 
 interface ExpensesFormProps {
   data: Pick<SalesRecord, 'employeeAdvances' | 'cleaningExpenses' | 'otherExpenses'>;
@@ -24,11 +26,23 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   
   useEffect(() => {
-    // Load employees from localStorage
-    const storedEmployees = localStorage.getItem('employees');
-    if (storedEmployees) {
-      setEmployees(JSON.parse(storedEmployees));
+    // Load employees for active store
+    const activeStore = getActiveStore();
+    if (activeStore) {
+      setEmployees(getEmployeesByStore(activeStore.id));
     }
+  }, []);
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const activeStore = getActiveStore();
+      if (activeStore) {
+        setEmployees(getEmployeesByStore(activeStore.id));
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleEmployeeChange = (employee: keyof SalesRecord['employeeAdvances'], value: string) => {

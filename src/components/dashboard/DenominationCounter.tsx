@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FaRupeeSign, FaMoneyBillWave } from "react-icons/fa";
+import { useEffect } from "react";
 
 interface DenominationCounterProps {
   denominations: SalesRecord['denominations'];
@@ -34,6 +35,13 @@ const DenominationCounter = ({
 
   const totalAmount = calculateTotalFromDenominations(denominations);
   const isExceeded = cashWithdrawn > totalAmount;
+
+  // Auto-set cash withdrawal to equal total amount
+  useEffect(() => {
+    if (totalAmount !== cashWithdrawn) {
+      onCashWithdrawnChange(totalAmount);
+    }
+  }, [totalAmount, cashWithdrawn, onCashWithdrawnChange]);
 
   const denominationItems = [
     { value: 500, key: 'd500' as keyof SalesRecord['denominations'] },

@@ -9,15 +9,26 @@ import StoreSelector from "./StoreSelector";
 import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport, FaStore } from "react-icons/fa";
 import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
 import DataImportExport from "./DataImportExport";
-import { initializeDefaultStore } from "@/services/storeService";
+import { initializeDefaultStore, getActiveStore } from "@/services/storeService";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
   const [employeeActiveTab, setEmployeeActiveTab] = useState("management");
+  const [activeStore, setActiveStoreState] = useState(getActiveStore());
   
   useEffect(() => {
     // Initialize default store if none exists
     initializeDefaultStore();
+    setActiveStoreState(getActiveStore());
+  }, []);
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setActiveStoreState(getActiveStore());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
   return (
@@ -33,7 +44,7 @@ const Dashboard = () => {
                 Daily Accounts
               </h1>
               <p className="text-sm md:text-base font-medium text-shop-secondary">
-                Smart Retail Analytics & Management
+                {activeStore?.name || 'Smart Retail Analytics & Management'}
               </p>
             </div>
           </div>
@@ -50,12 +61,6 @@ const Dashboard = () => {
               </span>
             </div>
           </div>
-        </div>
-        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100 mb-6">
-          <p className="text-gray-700 md:text-lg max-w-3xl">
-            Streamline your retail operations with powerful insights to track sales, 
-            manage expenses, and optimize your cash flow—all in one intuitive dashboard.
-          </p>
         </div>
       </header>
 

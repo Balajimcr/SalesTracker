@@ -24,6 +24,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getActiveStore } from "@/services/storeService";
+import { 
+  getEmployeesByStore, 
+  saveEmployeeForStore, 
+  deleteEmployeeFromStore,
+  migrateOldEmployeeData 
+} from "@/services/employeeService";
 
 export interface Employee {
   id: string;
@@ -36,6 +43,7 @@ const EmployeeManagement = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
+  const [activeStore, setActiveStoreState] = useState(getActiveStore());
   const [newEmployee, setNewEmployee] = useState<Employee>({
     id: '',
     name: '',
@@ -45,16 +53,28 @@ const EmployeeManagement = () => {
   
   // Load employees from localStorage on component mount
   useEffect(() => {
-    const storedEmployees = localStorage.getItem('employees');
-    if (storedEmployees) {
-      setEmployees(JSON.parse(storedEmployees));
+    const store = getActiveStore();
+    setActiveStoreState(store);
+    if (store) {
+      // Migrate old employee data if needed
+      migrateOldEmployeeData(store.id);
+      setEmployees(getEmployeesByStore(store.id));
     }
   }, []);
   
-  // Save employees to localStorage whenever they change
+  // Update employees when active store changes
   useEffect(() => {
-    localStorage.setItem('employees', JSON.stringify(employees));
-  }, [employees]);
+    const handleStorageChange = () => {
+      const store = getActiveStore();
+      setActiveStoreState(store);
+      if (store) {
+        setEmployees(getEmployeesByStore(store.id));
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   
   const handleAddEmployee = () => {
     setIsAddingEmployee(true);
@@ -72,16 +92,18 @@ const EmployeeManagement = () => {
       return;
     }
     
+    if (!activeStore) {
+      toast.error("No active store selected!");
+      return;
+    }
+    
+    saveEmployeeForStore(activeStore.id, newEmployee);
+    setEmployees(getEmployeesByStore(activeStore.id));
+    
     if (editingEmployeeId) {
-      // Update existing employee
-      setEmployees(prev => prev.map(emp => 
-        emp.id === editingEmployeeId ? newEmployee : emp
-      ));
-      setEditingEmployeeId(null);
       toast.success("Employee updated successfully!");
+      setEditingEmployeeId(null);
     } else {
-      // Add new employee
-      setEmployees(prev => [...prev, newEmployee]);
       toast.success("Employee added successfully!");
     }
     
@@ -100,7 +122,13 @@ const EmployeeManagement = () => {
   };
   
   const handleDeleteEmployee = (id: string) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== id));
+    if (!activeStore) {
+      toast.error("No active store selected!");
+      return;
+    }
+    
+    deleteEmployeeFromStore(activeStore.id, id);
+    setEmployees(getEmployeesByStore(activeStore.id));
     toast.success("Employee removed successfully!");
   };
   

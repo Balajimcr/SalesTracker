@@ -56,7 +56,7 @@ export const InstallPrompt: React.FC = () => {
       <Download className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
         <div className="flex-1 pr-2">
-          <p className="font-medium">Install DailySalesTracker</p>
+          <p className="font-medium">Install Daily Accounts</p>
           <p className="text-sm text-muted-foreground">
             Get the app for quick access and offline features
           </p>

@@ -22,29 +22,11 @@ import {
 } from "react-icons/fa";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Employee } from './EmployeeManagement';
+import { csvStoreService } from "@/services/csvStoreService";
+import { csvEmployeeService } from "@/services/csvEmployeeService";
+import { csvSalaryService, SalaryAdvance, EmployeeSalary } from "@/services/csvSalaryService";
 
-// Interface for our data structures
-interface SalaryAdvance {
-  id: string;
-  date: string;
-  amount: number;
-  employeeId: string;
-  comments: string;
-  type: 'bank' | 'cash';
-}
-
-interface EmployeeSalary {
-  id: string;
-  month: string;
-  employeeId: string;
-  salary: number;
-  totalSales: number;
-  monthlyBankTransfers: number;
-  monthlyCashWithdrawn: number;
-  totalSalaryAdvance: number;
-  balanceCurrent: number;
-  balanceTillDate: number;
-}
+// Interface for our data structures - moved to csvSalaryService
 
 const EmployeeSalaryManagement = () => {
   // State for advances/transfers
@@ -56,6 +38,7 @@ const EmployeeSalaryManagement = () => {
   
   // State for employees and salaries
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [activeStore, setActiveStoreState] = useState(csvStoreService.getActiveStore());
   const [newEmployeeName, setNewEmployeeName] = useState("");
   const [newEmployeeMobile, setNewEmployeeMobile] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
@@ -75,29 +58,31 @@ const EmployeeSalaryManagement = () => {
     format(subMonths(new Date(), i), "yyyy-MM")
   ).reverse();
   
-  // Load employees from localStorage on component mount
+  // Load employees and salary data from CSV services on component mount
   useEffect(() => {
-    const storedEmployees = localStorage.getItem('employees');
-    if (storedEmployees) {
-      setEmployees(JSON.parse(storedEmployees));
-    }
-    
-    const storedAdvances = localStorage.getItem('employeeSalaryAdvances');
-    const storedSalaries = localStorage.getItem('employeeSalaryData');
-    
-    if (storedAdvances) {
-      setAdvances(JSON.parse(storedAdvances));
-    }
-    
-    if (storedSalaries) {
-      setSalaries(JSON.parse(storedSalaries));
+    const store = csvStoreService.getActiveStore();
+    setActiveStoreState(store);
+    if (store) {
+      const storeEmployees = csvEmployeeService.getEmployeesForStore(store.id);
+      setEmployees(storeEmployees);
+      
+      const storeAdvances = csvSalaryService.getAdvancesForStore(store.id);
+      const storeSalaries = csvSalaryService.getSalaryDataForStore(store.id);
+      
+      setAdvances(storeAdvances);
+      setSalaries(storeSalaries);
     }
   }, []);
   
-  // Add new employee
+  // Add new employee to current store
   const handleAddEmployee = () => {
     if (!newEmployeeName.trim()) {
       toast.error("Employee name is required!");
+      return;
+    }
+    
+    if (!activeStore) {
+      toast.error("No active store selected!");
       return;
     }
     
@@ -108,9 +93,9 @@ const EmployeeSalaryManagement = () => {
       joiningDate: new Date().toISOString().split('T')[0]
     };
     
-    const updatedEmployees = [...employees, newEmployee];
+    csvEmployeeService.saveEmployeeForStore(activeStore.id, newEmployee);
+    const updatedEmployees = csvEmployeeService.getEmployeesForStore(activeStore.id);
     setEmployees(updatedEmployees);
-    localStorage.setItem('employees', JSON.stringify(updatedEmployees));
     
     setNewEmployeeName("");
     setNewEmployeeMobile("");
@@ -118,8 +103,13 @@ const EmployeeSalaryManagement = () => {
     toast.success("Employee added successfully!");
   };
   
-  // Remove employee
+  // Remove employee from current store
   const handleRemoveEmployee = (employeeId: string) => {
+    if (!activeStore) {
+      toast.error("No active store selected!");
+      return;
+    }
+    
     // First check if employee has advances or salaries
     const hasAdvances = advances.some(a => a.employeeId === employeeId);
     const hasSalaries = salaries.some(s => s.employeeId === employeeId);
@@ -129,9 +119,9 @@ const EmployeeSalaryManagement = () => {
       return;
     }
     
-    const updatedEmployees = employees.filter(e => e.id !== employeeId);
+    csvEmployeeService.deleteEmployeeFromStore(activeStore.id, employeeId);
+    const updatedEmployees = csvEmployeeService.getEmployeesForStore(activeStore.id);
     setEmployees(updatedEmployees);
-    localStorage.setItem('employees', JSON.stringify(updatedEmployees));
     
     if (selectedEmployee === employeeId) {
       setSelectedEmployee("");
@@ -140,10 +130,15 @@ const EmployeeSalaryManagement = () => {
     toast.success("Employee removed successfully!");
   };
   
-  // Handle saving a new advance/transfer
+  // Handle saving a new advance/transfer for current store
   const handleSaveAdvance = () => {
     if (!advanceDate || !advanceAmount || !advanceEmployee) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    if (!activeStore) {
+      toast.error("No active store selected!");
       return;
     }
     
@@ -163,9 +158,9 @@ const EmployeeSalaryManagement = () => {
       type: advanceType
     };
     
-    const updatedAdvances = [...advances, newAdvance];
+    csvSalaryService.saveAdvanceForStore(activeStore.id, newAdvance);
+    const updatedAdvances = csvSalaryService.getAdvancesForStore(activeStore.id);
     setAdvances(updatedAdvances);
-    localStorage.setItem('employeeSalaryAdvances', JSON.stringify(updatedAdvances));
     
     // Reset form
     setAdvanceAmount("");
@@ -174,8 +169,13 @@ const EmployeeSalaryManagement = () => {
     toast.success("Salary advance/transfer saved successfully");
   };
   
-  // Handle updating employee salary
+  // Handle updating employee salary for current store
   const handleUpdateSalary = () => {
+    if (!activeStore) {
+      toast.error("No active store selected!");
+      return;
+    }
+    
     const updatedSalaries: EmployeeSalary[] = employees.map(employee => {
       const salary = employeeSalaries[employee.id] || 0;
       
@@ -211,8 +211,8 @@ const EmployeeSalaryManagement = () => {
       };
     });
     
+    csvSalaryService.saveSalaryDataForStore(activeStore.id, updatedSalaries);
     setSalaries(updatedSalaries);
-    localStorage.setItem('employeeSalaryData', JSON.stringify(updatedSalaries));
     
     toast.success("Salary data updated successfully");
   };
@@ -277,6 +277,11 @@ const EmployeeSalaryManagement = () => {
             <div className="flex items-center gap-2">
               <FaMoneyBillWave className="text-violet-500" />
               <span>Employee Salary Management</span>
+              {activeStore && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({activeStore.name})
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setIsAddEmployeeDialogOpen}>

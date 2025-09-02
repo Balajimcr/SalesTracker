@@ -24,13 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getActiveStore } from "@/services/storeService";
-import { 
-  getEmployeesByStore, 
-  saveEmployeeForStore, 
-  deleteEmployeeFromStore,
-  migrateOldEmployeeData 
-} from "@/services/employeeService";
+import { csvStoreService } from "@/services/csvStoreService";
+import { csvEmployeeService } from "@/services/csvEmployeeService";
 
 export interface Employee {
   id: string;
@@ -43,7 +38,7 @@ const EmployeeManagement = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
-  const [activeStore, setActiveStoreState] = useState(getActiveStore());
+  const [activeStore, setActiveStoreState] = useState(csvStoreService.getActiveStore());
   const [newEmployee, setNewEmployee] = useState<Employee>({
     id: '',
     name: '',
@@ -51,24 +46,22 @@ const EmployeeManagement = () => {
     joiningDate: new Date().toISOString().split('T')[0]
   });
   
-  // Load employees from localStorage on component mount
+  // Load employees from CSV service on component mount
   useEffect(() => {
-    const store = getActiveStore();
+    const store = csvStoreService.getActiveStore();
     setActiveStoreState(store);
     if (store) {
-      // Migrate old employee data if needed
-      migrateOldEmployeeData(store.id);
-      setEmployees(getEmployeesByStore(store.id));
+      setEmployees(csvEmployeeService.getEmployeesForStore(store.id));
     }
   }, []);
   
   // Update employees when active store changes
   useEffect(() => {
     const handleStorageChange = () => {
-      const store = getActiveStore();
+      const store = csvStoreService.getActiveStore();
       setActiveStoreState(store);
       if (store) {
-        setEmployees(getEmployeesByStore(store.id));
+        setEmployees(csvEmployeeService.getEmployeesForStore(store.id));
       }
     };
     
@@ -97,8 +90,8 @@ const EmployeeManagement = () => {
       return;
     }
     
-    saveEmployeeForStore(activeStore.id, newEmployee);
-    setEmployees(getEmployeesByStore(activeStore.id));
+    csvEmployeeService.saveEmployeeForStore(activeStore.id, newEmployee);
+    setEmployees(csvEmployeeService.getEmployeesForStore(activeStore.id));
     
     if (editingEmployeeId) {
       toast.success("Employee updated successfully!");
@@ -127,8 +120,8 @@ const EmployeeManagement = () => {
       return;
     }
     
-    deleteEmployeeFromStore(activeStore.id, id);
-    setEmployees(getEmployeesByStore(activeStore.id));
+    csvEmployeeService.deleteEmployeeFromStore(activeStore.id, id);
+    setEmployees(csvEmployeeService.getEmployeesForStore(activeStore.id));
     toast.success("Employee removed successfully!");
   };
   
@@ -148,6 +141,11 @@ const EmployeeManagement = () => {
           <CardTitle className="flex items-center gap-2">
             <FaUsers className="text-blue-500" />
             <span>Employee Management</span>
+            {activeStore && (
+              <span className="text-sm font-normal text-muted-foreground">
+                ({activeStore.name})
+              </span>
+            )}
           </CardTitle>
           {!isAddingEmployee && (
             <Button onClick={handleAddEmployee} className="bg-blue-600 hover:bg-blue-700">

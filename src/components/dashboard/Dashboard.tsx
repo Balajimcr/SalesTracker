@@ -5,7 +5,7 @@ import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
 import SalesDashboard from "./SalesDashboard";
 import StoreManagement from "./StoreManagement";
-import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport, FaStore } from "react-icons/fa";
+import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport, FaStore, FaCog } from "react-icons/fa";
 import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
 import DataImportExport from "./DataImportExport";
 import { csvStoreService } from "@/services/csvStoreService";
@@ -60,7 +60,7 @@ const Dashboard = () => {
               </h1>
             </div>
           </div>
-          <div className="flex items-center justify-start md:justify-end gap-4">
+          <div className="flex items-center justify-start md:justify-end gap-4 md:mr-4">
             <div className="px-3 py-1.5 bg-muted rounded-lg border">
               <span className="text-xs font-medium text-muted-foreground">
                 {new Date().toLocaleDateString('en-US', { 
@@ -74,25 +74,32 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Store Tabs */}
-        {allStores.length > 1 && (
-          <div className="mb-6">
+        {/* Store Selection */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <FaStore className="text-primary h-5 w-5" />
+            <h3 className="font-semibold text-foreground">Store</h3>
+          </div>
+          {allStores.length > 1 ? (
             <Tabs value={activeStoreTab} onValueChange={handleStoreTabChange} className="w-full">
-              <TabsList className="bg-muted">
+              <TabsList className="bg-muted border shadow-sm">
                 {allStores.map(store => (
                   <TabsTrigger 
                     key={store.id} 
                     value={store.id}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                   >
-                    <FaStore className="h-4 w-4" />
-                    <span>{store.name}</span>
+                    <span className="font-medium">{store.name}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
-          </div>
-        )}
+          ) : activeStore ? (
+            <div className="px-4 py-2 bg-muted border rounded-md">
+              <span className="font-medium text-foreground">{activeStore.name}</span>
+            </div>
+          ) : null}
+        </div>
       </header>
 
       <main>
@@ -104,19 +111,15 @@ const Dashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <FaChartLine />
-              <span>Sales Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="stores" className="flex items-center gap-2">
-              <FaStore />
-              <span>Stores</span>
+              <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="employees" className="flex items-center gap-2">
               <FaUsers />
-              <span>Employees</span>
+              <span>Employee Accounts</span>
             </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center gap-2">
-              <FaFileExport />
-              <span>Import/Export</span>
+            <TabsTrigger value="admin" className="flex items-center gap-2">
+              <FaCog />
+              <span>Admin Panel</span>
             </TabsTrigger>
           </TabsList>
           
@@ -126,10 +129,6 @@ const Dashboard = () => {
           
           <TabsContent value="dashboard">
             <SalesDashboard />
-          </TabsContent>
-          
-          <TabsContent value="stores">
-            <StoreManagement />
           </TabsContent>
           
           <TabsContent value="employees">
@@ -155,8 +154,27 @@ const Dashboard = () => {
             </Tabs>
           </TabsContent>
           
-          <TabsContent value="data">
-            <DataImportExport />
+          <TabsContent value="admin">
+            <Tabs defaultValue="stores" className="w-full">
+              <TabsList className="mb-6 bg-muted">
+                <TabsTrigger value="stores" className="flex items-center gap-2">
+                  <FaStore />
+                  <span>Store Management</span>
+                </TabsTrigger>
+                <TabsTrigger value="import-export" className="flex items-center gap-2">
+                  <FaFileExport />
+                  <span>Import/Export</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="stores">
+                <StoreManagement />
+              </TabsContent>
+              
+              <TabsContent value="import-export">
+                <DataImportExport />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </main>

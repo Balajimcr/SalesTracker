@@ -5,53 +5,64 @@ import SalesEntryForm from "./SalesEntryForm";
 import EmployeeManagement from "./EmployeeManagement";
 import SalesDashboard from "./SalesDashboard";
 import StoreManagement from "./StoreManagement";
-import StoreSelector from "./StoreSelector";
 import { FaShoppingBag, FaUsers, FaChartLine, FaMoneyBillWave, FaFileExport, FaStore } from "react-icons/fa";
 import EmployeeSalaryManagement from "./EmployeeSalaryManagement";
 import DataImportExport from "./DataImportExport";
-import { initializeDefaultStore, getActiveStore } from "@/services/storeService";
+import { csvStoreService } from "@/services/csvStoreService";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("sales");
   const [employeeActiveTab, setEmployeeActiveTab] = useState("management");
-  const [activeStore, setActiveStoreState] = useState(getActiveStore());
+  const [activeStore, setActiveStoreState] = useState(csvStoreService.getActiveStore());
+  const [activeStoreTab, setActiveStoreTab] = useState("");
+  const [allStores] = useState(csvStoreService.getAllStores());
   
   useEffect(() => {
     // Initialize default store if none exists
-    initializeDefaultStore();
-    setActiveStoreState(getActiveStore());
+    csvStoreService.initializeDefaultStore();
+    const currentStore = csvStoreService.getActiveStore();
+    setActiveStoreState(currentStore);
+    if (currentStore) {
+      setActiveStoreTab(currentStore.id);
+    }
   }, []);
   
   useEffect(() => {
     const handleStorageChange = () => {
-      setActiveStoreState(getActiveStore());
+      const currentStore = csvStoreService.getActiveStore();
+      setActiveStoreState(currentStore);
+      if (currentStore) {
+        setActiveStoreTab(currentStore.id);
+      }
     };
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  const handleStoreTabChange = (storeId: string) => {
+    csvStoreService.setActiveStore(storeId);
+    setActiveStoreTab(storeId);
+    setActiveStoreState(csvStoreService.getActiveStore());
+  };
   
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-shop-primary to-shop-secondary p-3 rounded-xl shadow-lg">
-              <FaShoppingBag className="text-3xl text-white" />
+            <div className="bg-gradient-to-br from-primary to-secondary p-3 rounded-xl shadow-lg">
+              <FaShoppingBag className="text-3xl text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 bg-gradient-to-r from-shop-primary to-shop-accent bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Daily Accounts
               </h1>
-              <p className="text-sm md:text-base font-medium text-shop-secondary">
-                {activeStore?.name || 'Smart Retail Analytics & Management'}
-              </p>
             </div>
           </div>
           <div className="flex items-center justify-start md:justify-end gap-4">
-            <StoreSelector />
-            <div className="px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
-              <span className="text-xs font-medium text-blue-700">
+            <div className="px-3 py-1.5 bg-muted rounded-lg border">
+              <span className="text-xs font-medium text-muted-foreground">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'short', 
                   year: 'numeric', 
@@ -62,11 +73,31 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        
+        {/* Store Tabs */}
+        {allStores.length > 1 && (
+          <div className="mb-6">
+            <Tabs value={activeStoreTab} onValueChange={handleStoreTabChange} className="w-full">
+              <TabsList className="bg-muted">
+                {allStores.map(store => (
+                  <TabsTrigger 
+                    key={store.id} 
+                    value={store.id}
+                    className="flex items-center gap-2"
+                  >
+                    <FaStore className="h-4 w-4" />
+                    <span>{store.name}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
       </header>
 
       <main>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 bg-muted">
             <TabsTrigger value="sales" className="flex items-center gap-2">
               <FaShoppingBag />
               <span>Sales Entry</span>
@@ -103,7 +134,7 @@ const Dashboard = () => {
           
           <TabsContent value="employees">
             <Tabs value={employeeActiveTab} onValueChange={setEmployeeActiveTab} className="w-full">
-              <TabsList className="mb-6">
+              <TabsList className="mb-6 bg-muted">
                 <TabsTrigger value="management" className="flex items-center gap-2">
                   <FaUsers />
                   <span>Employee Management</span>

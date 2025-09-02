@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FaUserFriends, FaBroom, FaReceipt } from "react-icons/fa";
 import { calculateTotalExpenses } from "@/utils/salesCalculations";
 import { Employee } from "./EmployeeManagement";
-import { getActiveStore } from "@/services/storeService";
-import { getEmployeesByStore } from "@/services/employeeService";
+import { csvStoreService } from "@/services/csvStoreService";
+import { csvEmployeeService } from "@/services/csvEmployeeService";
 
 interface ExpensesFormProps {
   data: Pick<SalesRecord, 'employeeAdvances' | 'cleaningExpenses' | 'otherExpenses'>;
@@ -27,17 +27,17 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
   
   useEffect(() => {
     // Load employees for active store
-    const activeStore = getActiveStore();
+    const activeStore = csvStoreService.getActiveStore();
     if (activeStore) {
-      setEmployees(getEmployeesByStore(activeStore.id));
+      setEmployees(csvEmployeeService.getEmployeesForStore(activeStore.id));
     }
   }, []);
   
   useEffect(() => {
     const handleStorageChange = () => {
-      const activeStore = getActiveStore();
+      const activeStore = csvStoreService.getActiveStore();
       if (activeStore) {
-        setEmployees(getEmployeesByStore(activeStore.id));
+        setEmployees(csvEmployeeService.getEmployeesForStore(activeStore.id));
       }
     };
     
@@ -87,8 +87,12 @@ const ExpensesForm = ({ data, onChange }: ExpensesFormProps) => {
           <div>
             <div className="space-y-3">
               {Object.keys(data.employeeAdvances).map((employeeKey, index) => {
-                const employeeMatch = employees.length > index ? employees[index] : null;
-                const employeeLabel = employeeMatch ? employeeMatch.name : `Employee ${index + 1}`;
+                // Find employee by employee number (1-4) instead of array index
+                const employeeNumber = index + 1;
+                const employeeMatch = employees.find(emp => emp.employeeNumber === employeeNumber);
+                const employeeLabel = employeeMatch 
+                  ? `Employee ${employeeNumber} - ${employeeMatch.name}` 
+                  : `Employee ${employeeNumber}`;
                 
                 return (
                   <div key={employeeKey} className="grid grid-cols-[1fr_2fr] items-center gap-3">

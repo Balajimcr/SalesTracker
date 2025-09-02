@@ -86,11 +86,28 @@ const EmployeeSalaryManagement = () => {
       return;
     }
     
+    // Check if we already have 4 employees
+    if (employees.length >= 4) {
+      toast.error("Maximum 4 employees allowed per store!");
+      return;
+    }
+    
+    // Find next available employee number
+    const usedNumbers = employees.map(emp => emp.employeeNumber).filter(num => num);
+    let employeeNumber = 1;
+    for (let i = 1; i <= 4; i++) {
+      if (!usedNumbers.includes(i)) {
+        employeeNumber = i;
+        break;
+      }
+    }
+    
     const newEmployee: Employee = {
       id: Date.now().toString(),
       name: newEmployeeName,
       mobile: newEmployeeMobile,
-      joiningDate: new Date().toISOString().split('T')[0]
+      joiningDate: new Date().toISOString().split('T')[0],
+      employeeNumber
     };
     
     csvEmployeeService.saveEmployeeForStore(activeStore.id, newEmployee);
@@ -100,7 +117,7 @@ const EmployeeSalaryManagement = () => {
     setNewEmployeeName("");
     setNewEmployeeMobile("");
     setIsAddEmployeeDialogOpen(false);
-    toast.success("Employee added successfully!");
+    toast.success(`Employee ${employeeNumber} added successfully!`);
   };
   
   // Remove employee from current store

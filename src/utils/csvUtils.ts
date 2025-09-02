@@ -70,13 +70,14 @@ export const importEmployeesFromCSV = (csvFile: File): Promise<void> => {
         // Parse each row
         const employees: Employee[] = dataRows
           .filter(row => row.trim() !== '')
-          .map(row => {
+          .map((row, index) => {
             const [name, mobile, joiningDate] = row.split(',');
             return {
               id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
               name: name.trim(),
               mobile: mobile.trim(),
-              joiningDate: joiningDate.trim()
+              joiningDate: joiningDate.trim(),
+              employeeNumber: index + 1 // Assign sequential employee numbers
             };
           });
         

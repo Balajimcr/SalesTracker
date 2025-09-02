@@ -32,6 +32,7 @@ export interface Employee {
   name: string;
   mobile: string;
   joiningDate: string;
+  employeeNumber: number; // 1-4 for each store
 }
 
 const EmployeeManagement = () => {
@@ -43,7 +44,8 @@ const EmployeeManagement = () => {
     id: '',
     name: '',
     mobile: '',
-    joiningDate: new Date().toISOString().split('T')[0]
+    joiningDate: new Date().toISOString().split('T')[0],
+    employeeNumber: 1
   });
   
   // Load employees from CSV service on component mount
@@ -75,7 +77,8 @@ const EmployeeManagement = () => {
       id: Date.now().toString(),
       name: '',
       mobile: '',
-      joiningDate: new Date().toISOString().split('T')[0]
+      joiningDate: new Date().toISOString().split('T')[0],
+      employeeNumber: 1 // Will be assigned automatically in handleSaveEmployee
     });
   };
   
@@ -88,6 +91,28 @@ const EmployeeManagement = () => {
     if (!activeStore) {
       toast.error("No active store selected!");
       return;
+    }
+    
+    // If adding new employee, assign next available employee number (1-4)
+    if (!editingEmployeeId) {
+      const existingEmployees = csvEmployeeService.getEmployeesForStore(activeStore.id);
+      const usedNumbers = existingEmployees.map(emp => emp.employeeNumber).filter(num => num);
+      let employeeNumber = 1;
+      
+      // Find the first available number from 1-4
+      for (let i = 1; i <= 4; i++) {
+        if (!usedNumbers.includes(i)) {
+          employeeNumber = i;
+          break;
+        }
+      }
+      
+      if (existingEmployees.length >= 4) {
+        toast.error("Maximum 4 employees allowed per store!");
+        return;
+      }
+      
+      newEmployee.employeeNumber = employeeNumber;
     }
     
     csvEmployeeService.saveEmployeeForStore(activeStore.id, newEmployee);
@@ -228,47 +253,53 @@ const EmployeeManagement = () => {
             </div>
           ) : (
             employees.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Mobile Number</TableHead>
-                    <TableHead>Joining Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {employees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell className="font-medium">{employee.name}</TableCell>
-                      <TableCell>{employee.mobile}</TableCell>
-                      <TableCell>
-                        {employee.joiningDate ? format(new Date(employee.joiningDate), "PPP") : "N/A"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEmployee(employee)}
-                          className="h-8 w-8 p-0 mr-2"
-                        >
-                          <span className="sr-only">Edit</span>
-                          <FaEdit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                        >
-                          <span className="sr-only">Delete</span>
-                          <FaTrash className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee #</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Mobile Number</TableHead>
+                        <TableHead>Joining Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {employees
+                        .sort((a, b) => (a.employeeNumber || 99) - (b.employeeNumber || 99))
+                        .map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell className="font-medium">
+                            Employee {employee.employeeNumber || 'N/A'}
+                          </TableCell>
+                          <TableCell className="font-medium">{employee.name}</TableCell>
+                          <TableCell>{employee.mobile}</TableCell>
+                          <TableCell>
+                            {employee.joiningDate ? format(new Date(employee.joiningDate), "PPP") : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditEmployee(employee)}
+                              className="h-8 w-8 p-0 mr-2"
+                            >
+                              <span className="sr-only">Edit</span>
+                              <FaEdit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteEmployee(employee.id)}
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                            >
+                              <span className="sr-only">Delete</span>
+                              <FaTrash className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <FaUsers className="w-12 h-12 mx-auto mb-4 text-gray-300" />

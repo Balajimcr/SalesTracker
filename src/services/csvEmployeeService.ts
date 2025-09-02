@@ -70,12 +70,13 @@ export class CSVEmployeeService {
   // Export employees to CSV for specific store
   private exportEmployeesToCSV(storeId: string): void {
     const employees = this.getEmployeesForStore(storeId);
-    const headers = ['id', 'name', 'mobile', 'joiningDate'];
+    const headers = ['id', 'name', 'mobile', 'joiningDate', 'employeeNumber'];
     const rows = employees.map(employee => [
       employee.id,
       `"${employee.name}"`,
       employee.mobile,
-      employee.joiningDate
+      employee.joiningDate,
+      employee.employeeNumber || 1
     ].join(','));
     
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -109,12 +110,13 @@ export class CSVEmployeeService {
           const importedEmployees: Employee[] = dataRows
             .filter(row => row.trim() !== '')
             .map(row => {
-              const [id, name, mobile, joiningDate] = row.split(',');
+              const [id, name, mobile, joiningDate, employeeNumber] = row.split(',');
               return {
                 id: id.trim(),
                 name: name.replace(/"/g, '').trim(),
                 mobile: mobile.trim(),
-                joiningDate: joiningDate.trim()
+                joiningDate: joiningDate.trim(),
+                employeeNumber: parseInt(employeeNumber?.trim()) || 1
               };
             });
           

@@ -30,7 +30,7 @@ const Dashboard = () => {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800 bg-gradient-to-r from-shop-primary to-shop-accent bg-clip-text text-transparent">
-                RetailPulse
+                DailySalesTracker
               </h1>
               <p className="text-sm md:text-base font-medium text-shop-secondary">
                 Smart Retail Analytics & Management

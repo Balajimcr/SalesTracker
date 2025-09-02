@@ -1,6 +1,6 @@
 {
-  "name": "RetailPulse - Smart Retail Analytics",
-  "short_name": "RetailPulse",
+  "name": "DailySalesTracker - Smart Retail Analytics",
+  "short_name": "DailySalesTracker",
   "description": "Streamline your retail operations with powerful insights to track sales, manage expenses, and optimize your cash flow",
   "start_url": "/",
   "display": "standalone",

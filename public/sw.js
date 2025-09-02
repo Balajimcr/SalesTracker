@@ -1,4 +1,4 @@
-const CACHE_NAME = 'retailpulse-v1';
+const CACHE_NAME = 'dailysalestracker-v1';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
